@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.syncinator.kodi.login.controller.ServiceController.ServiceResponse;
+import com.syncinator.kodi.login.util.Utils;
 
 @RestController
 @RequestMapping("/report-error.jsp")
@@ -36,7 +37,7 @@ public class ReportErrorController {
 	
 	@RequestMapping
 	public ServiceResponse forum(@RequestParam String stacktrace, HttpServletRequest request) throws IOException {
-		sendEmail(to, subjectPrefix + request.getRemoteAddr(), stacktrace);
+		sendEmail(to, subjectPrefix + Utils.getRemoteAddress(request), stacktrace);
 		ServiceResponse serviceResponse = new ServiceResponse();
 		serviceResponse.setSuccess(true);
 		return serviceResponse;

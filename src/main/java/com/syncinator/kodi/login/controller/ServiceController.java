@@ -3,9 +3,11 @@ package com.syncinator.kodi.login.controller;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 
-import javax.servlet.http.HttpSession;
+import javax.servlet.http.HttpServletRequest;
 
 import org.ehcache.Cache;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.syncinator.kodi.login.KodiLoginCacheManager;
+import com.syncinator.kodi.login.util.Utils;
 
 @RestController
 @RequestMapping("/service.jsp")
@@ -23,9 +26,11 @@ public class ServiceController {
 	private final String CODE = "code";
 	private final String BEGIN = "begin";
 	private final String LOGIN = "login";
+	private static final Logger logger = LoggerFactory.getLogger(ServiceController.class);
 	
 	@Autowired
 	private SecureRandom random;
+		
 
 	@RequestMapping
 	public ServiceResponse service(
@@ -33,7 +38,7 @@ public class ServiceController {
 			@RequestParam(required=false, defaultValue="1") String version, 
 			@RequestParam(required=false) String pin, 
 			@RequestParam(required=false) String code,
-			HttpSession session) {
+			HttpServletRequest request) {
 		Cache<String, String> pinCache = KodiLoginCacheManager.getPinCache();
 		ServiceResponse loginResponse = new ServiceResponse();
 		if (action.equals(PIN)) {
@@ -43,6 +48,7 @@ public class ServiceController {
 			loginResponse.setSuccess(true);
 			loginResponse.setPin(pin);
 			loginResponse.setVersion(version);
+			logger.info(pin +" generated for " + Utils.getRemoteAddress(request));
 			pinCache.put(pin, version);
 		} else if (action.equals(BEGIN)) {
 			loginResponse.setSuccess(pin != null && pinCache.containsKey(pin));
@@ -59,6 +65,7 @@ public class ServiceController {
 			if (loginResponse.isSuccess()) {
 				loginResponse.setCode(pinCache.get(pin));
 			}
+			logger.info(pin + " requested the code from " + Utils.getRemoteAddress(request));
 		}
 		return loginResponse;
 	}
