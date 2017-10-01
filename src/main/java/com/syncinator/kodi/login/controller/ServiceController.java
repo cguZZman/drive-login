@@ -8,7 +8,6 @@ import javax.servlet.http.HttpSession;
 import org.ehcache.Cache;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -28,7 +27,7 @@ public class ServiceController {
 	@Autowired
 	private SecureRandom random;
 
-	@RequestMapping(method = RequestMethod.GET)
+	@RequestMapping
 	public ServiceResponse service(
 			@RequestParam(required=false, defaultValue=PIN) String action, 
 			@RequestParam(required=false, defaultValue="1") String version, 

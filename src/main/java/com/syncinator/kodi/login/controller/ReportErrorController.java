@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -35,7 +34,7 @@ public class ReportErrorController {
         emailSender.send(message);
 	}
 	
-	@RequestMapping(method = RequestMethod.GET)
+	@RequestMapping
 	public ServiceResponse forum(@RequestParam String stacktrace, HttpServletRequest request) throws IOException {
 		sendEmail(to, subjectPrefix + request.getRemoteAddr(), stacktrace);
 		ServiceResponse serviceResponse = new ServiceResponse();
