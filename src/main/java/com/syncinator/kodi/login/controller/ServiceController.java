@@ -31,7 +31,6 @@ public class ServiceController {
 	@Autowired
 	private SecureRandom random;
 		
-
 	@RequestMapping
 	public ServiceResponse service(
 			@RequestParam(required=false, defaultValue=PIN) String action, 
@@ -61,11 +60,12 @@ public class ServiceController {
 				pinCache.put(pin, code);
 			}
 		} else if (action.equals(CODE)) {
-			loginResponse.setSuccess(pin != null && pinCache.containsKey(pin));
+			loginResponse.setSuccess(pin != null && pinCache.get(pin) != null && pinCache.get(pin).length() > 5);
 			if (loginResponse.isSuccess()) {
 				loginResponse.setCode(pinCache.get(pin));
 			}
-			logger.info(pin + " requested the code from " + Utils.getRemoteAddress(request));
+			logger.info(pin + " requested the code from " + Utils.getRemoteAddress(request) + ". success = " + loginResponse.isSuccess());
+			
 		}
 		return loginResponse;
 	}

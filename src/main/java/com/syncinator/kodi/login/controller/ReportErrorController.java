@@ -36,7 +36,7 @@ public class ReportErrorController {
 	}
 	
 	@RequestMapping
-	public ServiceResponse forum(@RequestParam String stacktrace, HttpServletRequest request) throws IOException {
+	public ServiceResponse reportError(@RequestParam String stacktrace, HttpServletRequest request) throws IOException {
 		sendEmail(to, subjectPrefix + Utils.getRemoteAddress(request), stacktrace);
 		ServiceResponse serviceResponse = new ServiceResponse();
 		serviceResponse.setSuccess(true);
