@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.syncinator.kodi.login.KodiLoginCacheManager;
-import com.syncinator.kodi.login.util.Utils;
 
 @RestController
 @RequestMapping("/service.jsp")
@@ -26,6 +25,8 @@ public class ServiceController {
 	private final String CODE = "code";
 	private final String BEGIN = "begin";
 	private final String LOGIN = "login";
+	
+	@SuppressWarnings("unused")
 	private static final Logger logger = LoggerFactory.getLogger(ServiceController.class);
 	
 	@Autowired
@@ -47,7 +48,6 @@ public class ServiceController {
 			loginResponse.setSuccess(true);
 			loginResponse.setPin(pin);
 			loginResponse.setVersion(version);
-			logger.info(pin +" generated for " + Utils.getRemoteAddress(request));
 			pinCache.put(pin, version);
 		} else if (action.equals(BEGIN)) {
 			loginResponse.setSuccess(pin != null && pinCache.containsKey(pin));
@@ -64,8 +64,6 @@ public class ServiceController {
 			if (loginResponse.isSuccess()) {
 				loginResponse.setCode(pinCache.get(pin));
 			}
-			logger.info(pin + " requested the code from " + Utils.getRemoteAddress(request) + ". success = " + loginResponse.isSuccess());
-			
 		}
 		return loginResponse;
 	}
