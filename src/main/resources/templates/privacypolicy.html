@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="utf-8"/>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+	<title th:text="#{privacy.policy}">Privacy Policy</title>
+	<link rel="stylesheet" type="text/css" href="../static/css/core.css" th:href="@{/css/core.css}"/>
+</head>
+<body>
+	<section class='container'>
+		<hgroup>
+			<h1 th:text="#{privacy.policy}">Privacy Policy</h1>
+		</hgroup>
+		
+		<br/><br/>
+		<div>
+			<ul>
+				<li>We do not store, sell or transmit any information.</li>
+				<li>The Addon stores only your account name and the access data in your Kodi device. This is used to display your account as an option menu in Kodi.</li>
+				<li>The Addon in your Kodi device will access your files information directly with the cloud drive provider and never stores any other data than the specified above.</li>
+			</ul>
+		</div>
+		<br/><br/>
+		<div>
+			<button type="submit" class="nav-button" th:text="'Back to Home'" th:onclick="'window.location.href=\'' + @{/} + '\''">Next</button>
+		</div>
+	</section>
+</body>
+</html>

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="utf-8"/>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+	<title th:text="#{title}">Authentication completed</title>
+	<script type="text/javascript" src="../static/js/jquery-2.1.3.min.js" th:src="@{/js/jquery-2.1.3.min.js}" ></script>
+	<link rel="stylesheet" type="text/css" href="../static/css/success.css" th:href="@{/css/success.css}"/>
+	<link rel="stylesheet" type="text/css" href="../static/css/core.css" th:href="@{/css/core.css}"/>
+	<script type="text/javascript">
+		function replay() {
+			var animation = document.getElementById('successAnimation');
+			animation.classList.remove('animated');
+			void animation.parentNode.offsetWidth;
+			animation.classList.add('animated');
+			setTimeout(replay, 5000);
+		}
+		$(function(){
+			setTimeout(replay, 5000);
+		});
+	</script>
+</head>
+<body>
+	<section class='container'>
+		<div class="round-corners-green">
+			<svg id="successAnimation" class="animated" xmlns="http://www.w3.org/2000/svg" width="170" height="170" viewBox="0 0 70 70">
+				<path id="successAnimationResult" fill="#0000FF" d="M35,60 C21.1928813,60 10,48.8071187 10,35 C10,21.1928813 21.1928813,10 35,10 C48.8071187,10 60,21.1928813 60,35 C60,48.8071187 48.8071187,60 35,60 Z M23.6332378,33.2260427 L22.3667622,34.7739573 L34.1433655,44.40936 L47.776114,27.6305926 L46.223886,26.3694074 L33.8566345,41.59064 L23.6332378,33.2260427 Z"/>
+				<circle id="successAnimationCircle" cx="35" cy="35" r="24" stroke="#Ff0000" stroke-width="4" stroke-linecap="round" fill="transparent"/>
+				<polyline id="successAnimationCheck" stroke="#979797" stroke-width="4" points="23 34 32 43 47 27" fill="transparent"/>
+			</svg>
+			<th:block th:text="#{success.text.1}">Your authentication has been successful.</th:block>
+			<br/><br/>
+			<th:block th:text="#{success.text.2}">Now KODI will complete your login.</th:block>
+		</div>
+		<br/>
+		<div>
+			<button type="submit" class="nav-button" th:text="'Back to Home'" th:onclick="'window.location.href=\'' + @{/} + '\''">Next</button>
+		</div>
+	</section>
+</body>
+</html>
