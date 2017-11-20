@@ -2,6 +2,8 @@ package com.syncinator.kodi.login.controller;
 
 import java.io.IOException;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -9,7 +11,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class IndexController {
 	
 	@RequestMapping("/")
-	public String login() throws IOException {
+	public String login(HttpServletRequest request) throws IOException {
+		String host = request.getHeader("host");
+		if (host.contains("onedrive.daro.mx")) {
+			return "redirect:/deprecated/index.html";
+		}
 		return "index";
 	}
 	

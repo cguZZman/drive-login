@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<title>OneDrive Authentication for KODI</title>
+
+<style>
+*, *:before, *:after {
+	-moz-box-sizing: border-box;
+	box-sizing: border-box;
+}
+
+aside, footer, header, hgroup, section {
+	display: block;
+}
+
+body {
+	color: #404040;
+	font-family: "Helvetica Neue", Helvetica, "Liberation Sans", Arial,
+		sans-serif;
+	font-size: 14px;
+	line-height: 1.4;
+}
+
+html {
+	font-family: sans-serif;
+	-ms-text-size-adjust: 100%;
+	-webkit-text-size-adjust: 100%;
+}
+
+ul {
+	margin-top: 0;
+}
+
+.container {
+	margin-right: auto;
+	margin-left: auto;
+	padding-left: 15px;
+	padding-right: 15px;
+}
+
+.container:before, .container:after {
+	content: " ";
+	/* 1 */
+	display: table;
+	/* 2 */
+}
+
+.container:after {
+	clear: both;
+}
+
+.row {
+	margin-left: -15px;
+	margin-right: -15px;
+}
+
+.row:before, .row:after {
+	content: " ";
+	/* 1 */
+	display: table;
+	/* 2 */
+}
+
+.row:after {
+	clear: both;
+}
+
+.col-sm-6, .col-md-6, .col-xs-12 {
+	position: relative;
+	min-height: 1px;
+	padding-left: 15px;
+	padding-right: 15px;
+}
+
+.col-xs-12 {
+	width: 100%;
+}
+
+@media ( min-width : 768px) {
+	.container {
+		width: 750px;
+	}
+	.col-sm-6 {
+		float: left;
+	}
+	.col-sm-6 {
+		width: 100%;
+	}
+}
+
+@media ( min-width : 992px) {
+	.container {
+		width: 970px;
+	}
+	.col-md-6 {
+		float: left;
+	}
+	.col-md-6 {
+		width: 100%;
+	}
+}
+
+@media ( min-width : 1200px) {
+	.container {
+		width: 1170px;
+	}
+}
+
+a {
+	color: #069;
+	text-decoration: none;
+}
+
+a:hover {
+	color: #EA0011;
+	text-decoration: underline;
+}
+
+hgroup {
+	margin-top: 50px;
+}
+
+footer {
+	margin: 50px 0 25px;
+	font-size: 11px
+}
+
+h1, h2, h3 {
+	color: #000;
+	line-height: 1.38em;
+	margin: .3em 0 .3em;
+}
+
+h1 {
+	font-size: 35px;
+	font-weight: 300;
+	border-bottom: 1px solid #fff;
+	margin-bottom: .5em;
+}
+
+h1:after {
+	content: "";
+	display: block;
+	width: 100%;
+	height: 1px;
+	background-color: #ddd;
+}
+
+h2 {
+	font-size: 22px;
+	font-weight: 400;
+}
+
+h3 {
+	font-size: 20px;
+	font-weight: 400;
+	margin: 0 0 .3em;
+}
+
+h4 {
+	font-weight: normal;
+}
+
+p {
+	margin: 0 0 2em;
+}
+
+p+h2 {
+	margin-top: 2em;
+}
+
+html {
+	background: #f5f5f5;
+	height: 100%;
+}
+
+code {
+	background-color: white;
+	border: 1px solid #ccc;
+	padding: 1px 5px;
+	color: #888;
+}
+
+pre {
+	display: block;
+	padding: 13.333px 20px;
+	margin: 0 0 20px;
+	font-size: 13px;
+	line-height: 1.4;
+	background-color: #fff;
+	border-left: 2px solid rgba(120, 120, 120, 0.35);
+	white-space: pre;
+	white-space: pre-wrap;
+	word-break: normal;
+	word-wrap: break-word;
+	overflow: auto;
+	font-family: Menlo, Monaco, "Liberation Mono", Consolas,
+		monospace !important;
+}
+
+.error {
+	color: #F00;
+	font-size: 18px;
+}
+
+.done {
+	color: #0A0;
+	font-size: 22px;
+}
+#login-code {
+	text-transform: uppercase;
+}
+</style>
+<script type="text/javascript" src="../js/jquery-2.1.3.min.js"></script>
+<script type="text/javascript" src="auth.js"></script>
+</head>
+<body>
+	<section class='container'>
+		<div align="right">
+			<a href="es/index.html"><img alt="help1" src="images/mexico.png" border="0"> Espa&ntilde;ol</a>
+		</div>
+		<hgroup>
+			<h1>
+				OneDrive Authentication for KODI<br/>
+			</h1>
+		</hgroup>
+		<div class="error" style="font-size: 22px; background-color: #ddd; display: none;">
+			<b>
+				This login page is OLD. It's only for version 1.3.2 or less.<br/>
+				A new version of this addon has been released.<br/>
+				Double check the address that KODI is displaying...<br/><br/>
+				
+				If you are using the new version (2.0.0), the correct login page is:<br/>
+				<a href="https://kodi-login.herokuapp.com" style="font-size: 28px; text-decoration: underline;">
+					https://kodi-login.herokuapp.com
+				</a>
+			</b>
+		</div>
+		<br/>
+		<section class='col-xs-12 col-sm-6 col-md-6'>
+			<section>
+				<div id="step1">
+					<h2>Enter the code you see on your KODI screen:</h2>
+					<br/>
+					<img alt="help1" src="images/step-1.gif">
+					<br/><br/>
+					<span style="font-size: 22px;">Your code: </span>
+					<input id="version" style="display: none;" />
+					<input id="login-code" size="15" style="width: 150px; height: 44px; font-size: 26px;" />
+					<input type="submit" id="beginButton" style="width: 100px; height: 30px; font-size: 18px;"
+						value="Next >" onclick="begin('')" />
+					<br/>
+					<span id="errorStep1" class="error" style="display: none;">
+						Your code is invalid. Start the OneDrive addon in your KODI and select "Add an account..." to see your code.
+					</span>
+					<span id="errorStep1gen" class="error" style="display: none;">
+						There was an error. May be the service is unavailable or in maintenance. Please try again in few minutes.
+					</span>
+				</div>
+				<div id="step2" style="display: none;">
+					<h3 class="done">Code accepted. You have one more step to do:</h3>
+					<br />
+					<h3>You need to Sign-in into your OneDrive account and
+						give your permission to "OneDrive for KODI" application. </h3>
+					<br />
+					<h3>There is a button down here to start this process!</h3>
+					<br />
+					<h3 style="color: #A00;">
+						THIS IS IMPORTANT:
+						<br/> 
+						A totally blank page will be displayed at the end of this step (after you say "Yes").
+						<br/> 
+						You need to copy the address (URL) of that blank page and paste it in the designated box below. 
+						<br/> 
+						Don't type it manually! Use Copy/Paste (Usually Ctrl+C / Ctrl+V)<br />
+					</h3>
+					<br />
+					<h3>
+						<input type="button" id="login-button"
+							style="width: 440px; height: 45px; font-size: 18px; font-weight: bold;"
+							value=">> Click here to start the Sign-in process <<" onclick="login()" />
+					</h3>
+					<br />
+					<img alt="help1" src="images/login.gif">
+					<br />
+					<img alt="help1" src="images/login2.png">
+					<br />
+					<h3>
+						Paste here the URL of the blank page window and click Finish: <br />
+						<input id="url"
+							style="width: 100%; height: 38px; font-size: 20px;" />
+					</h3>
+					<input type="submit" id="finishButton"
+						style="width: 100px; height: 30px; font-size: 17px;"
+						value="Finish" onclick="finish('')" />
+					<span id="errorStep2" style="display: none;"
+							class="error">This URL is invalid. Be sure to copy it from the blank screen. Try to Sign-in again.</span>
+					<span id="errorStep2-server" style="display: none;"
+							class="error">Your code seem to be invalid now. Try to Sign-in again.</span>
+					<span id="errorStep2-server-gen" style="display: none;"
+							class="error">There was an error. May be the service is unavailable or in maintenance. Please start the process again in few minutes.</span>
+				</div>
+				<div id="step3" style="display: none;">
+					<h3 class="done">You are all set!</h3>
+					<h3>
+						Now you can select "Done. Sign me in!" in the dialog that is displayed in your KODI screen.<br />
+						<br />
+						<br />
+					</h3>
+				</div>
+				<br/><br/><br/><br/>
+				<input type="submit" id="backButton"
+						style="width: 130px; height: 30px; font-size: 17px;"
+						value="Back to Home" onclick="backHome();" />
+				<hr />
+				<h4>
+					If you need help or something is not working, don't hesitate and ask for help:<br/>
+					Post a comment/question in our support forum thread: <a href="http://forum.kodi.tv/showthread.php?tid=228443" target="new">
+						http://forum.kodi.tv/showthread.php?tid=228443
+					</a>
+				</h4>
+				<br/><br/><br/><br/>
+			</section>
+
+		</section>
+	</section>
+
+</body>
+</html>
