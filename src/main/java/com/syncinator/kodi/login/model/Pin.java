@@ -10,6 +10,7 @@ public class Pin {
 	private String pin;
 	private String code;
 	private String password;
+	private String owner;
 	private String provider;
 	private Map<String,Object> accessToken;
 	
@@ -42,5 +43,11 @@ public class Pin {
 	}
 	public void setAccessToken(Map<String, Object> accessToken) {
 		this.accessToken = accessToken;
+	}
+	public String getOwner() {
+		return owner;
+	}
+	public void setOwner(String owner) {
+		this.owner = owner;
 	}
 }

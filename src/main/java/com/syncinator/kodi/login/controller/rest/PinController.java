@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.syncinator.kodi.login.KodiLoginCacheManager;
 import com.syncinator.kodi.login.model.Pin;
 import com.syncinator.kodi.login.oauth.provider.Provider;
+import com.syncinator.kodi.login.util.Utils;
 
 @RestController
 @RequestMapping("/pin")
@@ -40,7 +41,7 @@ public class PinController {
 	private ApplicationContext context;
 
 	@RequestMapping(method = RequestMethod.POST)
-	public Pin generatePin(@RequestParam String provider) {
+	public Pin generatePin(@RequestParam String provider, HttpServletRequest request) {
 		context.getBean(Provider.NAME_PREFIX + provider);
 		Cache<String, Pin> pinCache = KodiLoginCacheManager.getPinCache();
 		Pin response = new Pin();
@@ -48,8 +49,9 @@ public class PinController {
 		while (pin == null || pinCache.containsKey(pin))
 			pin = new BigInteger(24, random).toString(16).toLowerCase();
 		response.setPin(pin.toUpperCase());
-		response.setPassword(new BigInteger(1024, random).toString(16).toLowerCase());
+		response.setPassword(new BigInteger(2048, random).toString(16).toLowerCase());
 		response.setProvider(provider);
+		response.setOwner(Utils.getRemoteAddress(request));
 		pinCache.put(pin, response);
 		return response;
 	}
@@ -60,7 +62,7 @@ public class PinController {
 		String key = pin.toLowerCase();
 		Pin storedPin = pinCache.get(key);
 		String auth = request.getHeader("authorization");
-		if (storedPin != null && auth != null) {
+		if (storedPin != null && auth != null && storedPin.getOwner().equals(Utils.getRemoteAddress(request))) {
 			String[] data = auth.split(" ");
 			if (data.length == 2 && data[0].equalsIgnoreCase("basic")) {
 				String[] credentials = new String(Base64.decodeBase64(data[1].getBytes())).split(":");

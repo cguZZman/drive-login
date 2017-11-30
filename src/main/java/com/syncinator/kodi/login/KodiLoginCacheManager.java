@@ -20,7 +20,7 @@ public class KodiLoginCacheManager {
 			.withCache(PIN_ALIAS, 
 					CacheConfigurationBuilder
 						.newCacheConfigurationBuilder(String.class, Pin.class, ResourcePoolsBuilder.heap(50000))
-						.withExpiry(Expirations.timeToLiveExpiration(Duration.of(10, TimeUnit.MINUTES))))
+						.withExpiry(Expirations.timeToLiveExpiration(Duration.of(3, TimeUnit.MINUTES))))
 			.build();
 	
 	static {

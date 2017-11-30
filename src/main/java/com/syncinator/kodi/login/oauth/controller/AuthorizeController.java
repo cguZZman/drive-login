@@ -2,6 +2,8 @@ package com.syncinator.kodi.login.oauth.controller;
 
 import java.io.IOException;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.ehcache.Cache;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -13,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import com.syncinator.kodi.login.KodiLoginCacheManager;
 import com.syncinator.kodi.login.model.Pin;
 import com.syncinator.kodi.login.oauth.provider.Provider;
+import com.syncinator.kodi.login.util.Utils;
 
 @Controller
 public class AuthorizeController {
@@ -21,11 +24,11 @@ public class AuthorizeController {
 	private ApplicationContext context;
 	
 	@RequestMapping("/authorize")
-	public String login(@RequestParam String pin, Model model) throws IOException {
+	public String login(@RequestParam String pin, Model model, HttpServletRequest request) throws IOException {
 		Cache<String, Pin> pinCache = KodiLoginCacheManager.getPinCache();
 		pin = pin.replace('O', '0');
 		Pin storedPin = pinCache.get(pin.toLowerCase());
-		if (storedPin != null) {
+		if (storedPin != null && storedPin.getOwner().equals(Utils.getRemoteAddress(request))) {
 			Provider connector = context.getBean(Provider.NAME_PREFIX + storedPin.getProvider(), Provider.class);
 			return "redirect:" + connector.authorize(pin);
 		}
