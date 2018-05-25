@@ -233,3 +233,12 @@ pre {
 	height: 44px;
 	font-size: 26px;
 }
+
+table {
+	border: 1px solid gray;
+	border-spacing: 0px;	
+}
+
+td,th {
+	border: 1px solid gray;
+}

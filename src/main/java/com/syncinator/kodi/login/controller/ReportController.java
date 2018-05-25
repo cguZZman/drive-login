@@ -31,8 +31,15 @@ public class ReportController {
 	public void reportError(@RequestParam String stacktrace, HttpServletRequest request) throws IOException {
 		SimpleMailMessage message = new SimpleMailMessage(); 
         message.setTo(to); 
-        message.setSubject(subjectPrefix + Utils.getRemoteAddress(request)); 
-        message.setText(stacktrace);
+        message.setSubject(subjectPrefix + Utils.getRemoteAddress(request));
+        StringBuffer text = new StringBuffer();
+        text.append(stacktrace);
+        text.append("\nReported from:\n");
+        while (request.getHeaderNames().hasMoreElements()) {
+        	String header = request.getHeaderNames().nextElement();
+        	text.append(header).append(": ").append(request.getHeader(header));
+        }
+        message.setText(text.toString());
         emailSender.send(message);
 	}
 }

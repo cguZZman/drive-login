@@ -15,9 +15,58 @@
 		<br/><br/>
 		<div>
 			<ul>
-				<li>We do not store, sell or transmit any information.</li>
-				<li>The Addon stores only your account name and the access data in your Kodi device. This is used to display your account as an option menu in Kodi.</li>
-				<li>The Addon in your Kodi device will access your files information directly with the cloud drive provider and never stores any other data than the specified above.</li>
+				<li>
+					The add-on stores only your account name, account id, and the access data <b>in your Kodi device</b>.
+					This is used to display your account as an option menu in Kodi and to access your drive files.</li>
+				<li>The add-on access your files information only from your Kodi device directly to the cloud drive provider.</li>
+				<li>The add-on uses your files information for the purpose of displaying it in Kodi so you can play your video, music or you can view your pictures.</li>
+				<li>
+					The add-on transmits or shares information only to the developer of this add-on if you explicitly agreed to it and only if an error happened, for the sole purpose of helping to resolve the issues quickly. <br/>
+					This information includes the file id, filename, ip address and never includes sensitive information like access codes, emails or user names. <br/>
+					You can always disable this option in the configuration menu.
+				</li>
+				<li>Each scope requested by the add-on has an specific use and need:<br/>
+					<br/>
+					<u>OneDrive:</u><br/>
+					<table>
+						<tr>
+							<th>Scope</th>
+							<th>Use/Need</th>
+						</tr>
+						<tr>
+							<td>files.read.all</td>
+							<td>Access your file information in Read Only mode to be able to navigate your files and play them in Kodi.</td>
+						</tr>
+						<tr>
+							<td>sites.read.all</td>
+							<td>Access your site files (Business accounts) in Read Only mode to be able to navigate your files and play them in Kodi.</td>
+						</tr>
+						<tr>
+							<td>profile</td>
+							<td>Access your profile information to display your account as an option menu in Kodi.</td>
+						</tr>
+					</table>
+					<br/>
+					<u>Google Drive:</u>
+					<table>
+						<tr>
+							<th>Scope</th>
+							<th>Use/Need</th>
+						</tr>
+						<tr>
+							<td>https://www.googleapis.com/auth/drive.readonly</td>
+							<td>Access your file information in Read Only mode to be able to navigate your files and play them in Kodi.</td>
+						</tr>
+						<tr>
+							<td>https://www.googleapis.com/auth/drive.photos.readonly</td>
+							<td>Access your photos in Read Only mode to be able to navigate your photos and display them in Kodi.</td>
+						</tr>
+						<tr>
+							<td>profile</td>
+							<td>Access your profile information to display your account as an option menu in Kodi.</td>
+						</tr>
+					</table>
+				</li>
 			</ul>
 		</div>
 		<br/><br/>

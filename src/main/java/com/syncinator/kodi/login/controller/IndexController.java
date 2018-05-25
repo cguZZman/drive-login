@@ -12,10 +12,6 @@ public class IndexController {
 	
 	@RequestMapping("/")
 	public String login(HttpServletRequest request) throws IOException {
-		String host = request.getHeader("host");
-		if (host.contains("onedrive.daro.mx")) {
-			return "redirect:/deprecated/index.html";
-		}
 		return "index";
 	}
 	
