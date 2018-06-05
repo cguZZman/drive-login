@@ -1,6 +1,7 @@
 package com.syncinator.kodi.login.controller;
 
 import java.io.IOException;
+import java.util.Enumeration;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -35,9 +36,10 @@ public class ReportController {
         StringBuffer text = new StringBuffer();
         text.append(stacktrace);
         text.append("\nReported from:\n");
-        while (request.getHeaderNames().hasMoreElements()) {
-        	String header = request.getHeaderNames().nextElement();
-        	text.append(header).append(": ").append(request.getHeader(header));
+        Enumeration<String> headers = request.getHeaderNames();
+        while (headers.hasMoreElements()) {
+        	String header = headers.nextElement();
+        	text.append(header).append(": ").append(request.getHeader(header)).append(System.lineSeparator());
         }
         message.setText(text.toString());
         emailSender.send(message);
