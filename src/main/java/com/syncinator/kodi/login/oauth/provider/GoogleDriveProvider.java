@@ -14,8 +14,8 @@ public class GoogleDriveProvider extends Provider {
 	@SuppressWarnings("serial")
 	public String authorize(String pin) {
 		return getAuthorizeUrl(NAME, pin, new HashMap<String,String>() {{
-			put("scope", "https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/drive.photos.readonly");
-			put("access_type", "offline");
+			put("scope", "https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/drive.photos.readonly profile");
+			//put("access_type", "offline");
 			put("prompt", "consent");
 		}});
 	}
