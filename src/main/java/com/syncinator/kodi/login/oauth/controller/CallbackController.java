@@ -34,7 +34,7 @@ public class CallbackController {
 	private ReportController reportController;
 	
 	@RequestMapping
-	public String generatePin(
+	public String callback(
 			@RequestParam(required=false) String code,
 			@RequestParam(required=false) String state,
 			@RequestParam(required=false, name="session_state") String sessionState,
@@ -43,19 +43,23 @@ public class CallbackController {
 			Model model) throws Exception {
 		if (error == null) {
 			Cache<String, Pin> pinCache = KodiLoginCacheManager.getPinCache();
-			String pin = state.toLowerCase();
-			Pin storedPin = pinCache.get(pin);
-			if (storedPin != null) {
-				Provider connector = context.getBean(Provider.NAME_PREFIX + storedPin.getProvider(), Provider.class);
-				Map<String,Object> tokens = connector.tokens(Provider.GRANT_TYPE_AUTHORIZATION_CODE, code);
-				if (tokens != null) {
-					storedPin.setAccessToken(tokens);
-					return "redirect:auth-success";
+			if (state != null) {
+				String pin = state.toLowerCase();
+				Pin storedPin = pinCache.get(pin);
+				if (storedPin != null) {
+					Provider connector = context.getBean(Provider.NAME_PREFIX + storedPin.getProvider(), Provider.class);
+					Map<String,Object> tokens = connector.tokens(Provider.GRANT_TYPE_AUTHORIZATION_CODE, code);
+					if (tokens != null) {
+						storedPin.setAccessToken(tokens);
+						return "redirect:auth-success";
+					} else {
+						model.addAttribute("errorCode", "failure.code.2");
+					}
 				} else {
-					model.addAttribute("errorCode", "failure.code.2");
+					model.addAttribute("errorCode", "failure.code.1");
 				}
 			} else {
-				model.addAttribute("errorCode", "failure.code.1");
+				model.addAttribute("errorCode", "failure.code.3");
 			}
 		} else {
 			model.addAttribute("errorText", error + ": " + errorDescription);
