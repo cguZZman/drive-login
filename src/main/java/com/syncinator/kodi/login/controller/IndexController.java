@@ -7,11 +7,14 @@ import javax.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import com.syncinator.kodi.login.util.Utils;
+
 @Controller
 public class IndexController {
 	
 	@RequestMapping("/")
 	public String login(HttpServletRequest request) throws IOException {
+		request.setAttribute("sourceid", Utils.getSourceId(request));
 		return "index";
 	}
 	

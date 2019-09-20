@@ -20,16 +20,21 @@ import com.syncinator.kodi.login.util.Utils;
 @RequestMapping("/report")
 public class ReportController {
 	
-	@Autowired
+	@Autowired(required = false)
     public JavaMailSender emailSender;
 	
-	@Value("${report.email.to}")
+	@Value("${report.email.to:}")
 	private String to;
-	@Value("${report.email.subject.prefix}")
+	@Value("${report.email.subject.prefix:}")
 	private String subjectPrefix;
+	@Value("${report.enabled:false}")
+	private boolean reportEnabled;
 	
 	@RequestMapping(method=RequestMethod.POST)
 	public void reportError(@RequestParam String stacktrace, HttpServletRequest request) throws IOException {
+		if (!reportEnabled) {
+			return;
+		}
 		SimpleMailMessage message = new SimpleMailMessage(); 
         message.setTo(to); 
         message.setSubject(subjectPrefix + Utils.getRemoteAddress(request));

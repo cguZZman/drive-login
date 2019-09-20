@@ -1,14 +1,13 @@
 package com.syncinator.kodi.login;
 
-import java.util.concurrent.TimeUnit;
+import java.time.Duration;
 
 import org.ehcache.Cache;
 import org.ehcache.CacheManager;
 import org.ehcache.config.builders.CacheConfigurationBuilder;
 import org.ehcache.config.builders.CacheManagerBuilder;
+import org.ehcache.config.builders.ExpiryPolicyBuilder;
 import org.ehcache.config.builders.ResourcePoolsBuilder;
-import org.ehcache.expiry.Duration;
-import org.ehcache.expiry.Expirations;
 
 import com.syncinator.kodi.login.model.Pin;
 
@@ -19,8 +18,8 @@ public class KodiLoginCacheManager {
 	private static CacheManager pinCacheManager = CacheManagerBuilder.newCacheManagerBuilder()
 			.withCache(PIN_ALIAS, 
 					CacheConfigurationBuilder
-						.newCacheConfigurationBuilder(String.class, Pin.class, ResourcePoolsBuilder.heap(50000))
-						.withExpiry(Expirations.timeToLiveExpiration(Duration.of(3, TimeUnit.MINUTES))))
+						.newCacheConfigurationBuilder(String.class, Pin.class, ResourcePoolsBuilder.heap(100000))
+						.withExpiry(ExpiryPolicyBuilder.timeToLiveExpiration(Duration.ofMinutes(3))))
 			.build();
 	
 	static {
