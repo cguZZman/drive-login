@@ -41,10 +41,12 @@ class ActuatorSecurity extends WebSecurityConfigurerAdapter {
 	protected void configure(HttpSecurity http) throws Exception {
 		http
 			.authorizeRequests()
-				.requestMatchers(EndpointRequest.toAnyEndpoint()).authenticated()
+				.requestMatchers(EndpointRequest.toAnyEndpoint()).hasRole(username)
 				.antMatchers("/**").permitAll()
 				.and()
-				.httpBasic()
+				.formLogin()
+					.loginPage("/login")
+					.failureUrl("/login-error")
 				.and()
 				.csrf().disable();
 	}
