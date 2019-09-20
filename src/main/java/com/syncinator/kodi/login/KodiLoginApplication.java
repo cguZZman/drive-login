@@ -44,7 +44,9 @@ class ActuatorSecurity extends WebSecurityConfigurerAdapter {
 				.requestMatchers(EndpointRequest.toAnyEndpoint()).authenticated()
 				.antMatchers("/**").permitAll()
 				.and()
-				.httpBasic();
+				.httpBasic()
+				.and()
+				.csrf().disable();
 	}
 	
 	@Bean
