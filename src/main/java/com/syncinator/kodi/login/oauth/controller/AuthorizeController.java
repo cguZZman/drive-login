@@ -38,6 +38,7 @@ public class AuthorizeController {
 			Provider connector = context.getBean(Provider.NAME_PREFIX + storedPin.getProvider(), Provider.class);
 			return "redirect:" + connector.authorize(pin);
 		}
+		request.setAttribute("sourceid", Utils.getSourceId(request));
 		model.addAttribute("errorMessage", "error.pin.invalid");
 		return "index";
 	}
