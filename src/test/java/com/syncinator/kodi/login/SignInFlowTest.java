@@ -26,6 +26,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Rate limits are off here; RateLimitTest covers them.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
+		"security.require-https=false",
 		"rate-limit.pin=0", "rate-limit.signin=0", "rate-limit.refresh.ip=0", "rate-limit.refresh.token=0"})
 @ExtendWith(OutputCaptureExtension.class)
 class SignInFlowTest extends IntegrationTest {

@@ -14,6 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * counters of one test don't affect another.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
+		"security.require-https=false",
 		"rate-limit.pin=2", "rate-limit.signin=2", "rate-limit.refresh.ip=3", "rate-limit.refresh.token=2"})
 class RateLimitTest extends IntegrationTest {
 

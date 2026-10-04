@@ -18,6 +18,7 @@ heroku config:set FUNDING_URL=https://github.com/sponsors/<user> FUNDING_GOAL=15
 
 | Variable | Default | Effect |
 |---|---|---|
+| `REQUIRE_HTTPS` | `true` | Redirect plain HTTP to HTTPS (301 for GET/HEAD, 308 otherwise). Set to `false` to run locally without TLS. |
 | `RATE_LIMIT_PIN` | `10` | `POST /pin` requests per minute per IP. |
 | `RATE_LIMIT_SIGNIN` | `20` | `/authorize` and `/signin/*` requests per minute per IP. |
 | `RATE_LIMIT_REFRESH_IP` | `60` | `POST /refresh` requests per minute per IP. |

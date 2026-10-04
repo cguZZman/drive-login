@@ -13,6 +13,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
 		"callback.url=https://drive-login.example.com/callback",
+		"security.require-https=false",
 		"funding.url=https://example.org/donate",
 		"funding.goal=1500",
 		"funding.raised=420"})
