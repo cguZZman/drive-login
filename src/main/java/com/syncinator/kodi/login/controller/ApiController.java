@@ -45,7 +45,7 @@ public class ApiController {
 		context.getBean(Provider.NAME_PREFIX + provider);
 		String pin = null;
 		while (pin == null || Objects.nonNull(cache.getIfPresent(pin))) {
-			pin = new BigInteger(24, random).toString(16).toLowerCase();
+			pin = String.format("%06x", new BigInteger(24, random));
 		}
 		final Pin response = Pin.builder()
 				.pin(pin.toUpperCase())

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<!--/*
+	Shared page shell. Usage:
+	<html th:replace="~{fragments/layout :: page(#{some.title}, 'code', ~{::#content})}">
+	state drives the step indicator: 'code' (step 1), 'error' (step 2 failed), 'done' (all steps), or null (hidden).
+*/-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:fragment="page(title, state, content)" th:lang="${#locale.language}">
+<head>
+	<meta charset="utf-8"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1"/>
+	<meta name="color-scheme" content="light dark"/>
+	<meta name="google-site-verification" content="LXJecqW73UwDJ2KkfDMtuKTNM8zejv21CRvNbBbtC_4"/>
+	<title th:text="${title} + ' · ' + #{app.name}">Cloud Drive Sign-in for Kodi</title>
+	<link rel="icon" th:href="@{/favicon.ico}" href="/favicon.ico"/>
+	<link rel="stylesheet" th:href="@{/css/app.css}" href="/css/app.css"/>
+	<script th:src="@{/js/app.js}" src="/js/app.js" defer></script>
+</head>
+<body>
+	<main class="shell">
+		<a class="brand" th:href="@{/}" href="/">
+			<svg class="brand-icon" viewBox="0 0 48 48" aria-hidden="true">
+				<path d="M12 6h24a4 4 0 0 1 4 4l3 18H5l3-18a4 4 0 0 1 4-4z" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>
+				<rect x="5" y="28" width="38" height="14" rx="5" fill="none" stroke="currentColor" stroke-width="2.5"/>
+				<circle cx="36" cy="35" r="2.2" fill="currentColor"/>
+				<path d="M18.5 22.5h11a4 4 0 0 0 .4-8 5.5 5.5 0 0 0-10.6 1.2 3.4 3.4 0 0 0-.8 6.8z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/>
+			</svg>
+			<span th:text="#{app.name}">Cloud Drive Sign-in for Kodi</span>
+		</a>
+
+		<div class="card">
+			<ol class="steps" th:if="${state != null}" th:aria-label="#{steps.label}">
+				<li class="step"
+					th:classappend="${state == 'code'} ? 'current' : 'complete'"
+					th:attr="aria-current=${state == 'code'} ? 'step' : null">
+					<span class="step-dot" aria-hidden="true">1</span><span th:text="#{steps.code}">Enter code</span>
+				</li>
+				<li class="step"
+					th:classappend="${state == 'done'} ? 'complete' : (${state == 'error'} ? 'failed' : '')"
+					th:attr="aria-current=${state == 'error'} ? 'step' : null">
+					<span class="step-dot" aria-hidden="true">2</span><span th:text="#{steps.signin}">Sign in</span>
+				</li>
+				<li class="step"
+					th:classappend="${state == 'done'} ? 'complete current'"
+					th:attr="aria-current=${state == 'done'} ? 'step' : null">
+					<span class="step-dot" aria-hidden="true">3</span><span th:text="#{steps.done}">Back to Kodi</span>
+				</li>
+			</ol>
+			<div th:replace="${content}">Page content</div>
+		</div>
+
+		<footer class="footer">
+			<nav class="footer-links">
+				<a th:href="@{/privacypolicy}" href="/privacypolicy" th:text="#{footer.privacy}">Privacy policy</a>
+				<a href="https://github.com/cguZZman/drive-login" th:text="#{footer.source}">Source code</a>
+			</nav>
+			<p th:text="#{footer.disclaimer}">Not affiliated with or endorsed by Team Kodi, Google or Microsoft.</p>
+		</footer>
+	</main>
+</body>
+</html>

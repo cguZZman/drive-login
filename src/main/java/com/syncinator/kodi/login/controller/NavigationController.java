@@ -7,9 +7,11 @@ import com.syncinator.kodi.login.util.Utils;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -25,6 +27,13 @@ public class NavigationController {
 	private ApplicationContext context;
 	@NonNull
 	private Cache<Object, Object> cache;
+
+	@Value("${funding.url}")
+	private String fundingUrl;
+	@Value("${funding.goal}")
+	private int fundingGoal;
+	@Value("${funding.raised}")
+	private int fundingRaised;
 
 	@GetMapping("/")
 	public String index(final HttpServletRequest request) {
@@ -53,6 +62,7 @@ public class NavigationController {
 			return "redirect:" + connector.authorize(unambiguousPin);
 		}
 		request.setAttribute("sourceid", Utils.getSourceId(request));
+		model.addAttribute("pin", unambiguousPin);
 		model.addAttribute("errorMessage", "error.pin.invalid");
 		return "index";
 	}
@@ -64,7 +74,9 @@ public class NavigationController {
 			@RequestParam(required=false) final String error,
 			@RequestParam(required=false, name="error_description") final String errorDescription,
 			final Model model) {
-		if (error != null) {
+		if ("access_denied".equals(error)) {
+			model.addAttribute("errorCode", "failure.denied");
+		} else if (error != null) {
 			model.addAttribute("errorText", error + ": " + errorDescription);
 		} else if (state == null) {
 			model.addAttribute("errorCode", "failure.code.3");
@@ -88,7 +100,15 @@ public class NavigationController {
 	}
 
 	@GetMapping("/auth-success")
-	public String success() {
+	public String success(final Model model) {
+		if (StringUtils.hasText(fundingUrl)) {
+			model.addAttribute("fundingUrl", fundingUrl);
+			if (fundingGoal > 0) {
+				model.addAttribute("fundingGoal", String.format("%,d", fundingGoal));
+				model.addAttribute("fundingRaised", String.format("%,d", fundingRaised));
+				model.addAttribute("fundingPercent", Math.min(100, Math.max(0, fundingRaised * 100 / fundingGoal)));
+			}
+		}
 		return "auth-success";
 	}
 	

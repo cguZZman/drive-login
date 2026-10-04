@@ -1,78 +1,117 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head>
-	<meta charset="utf-8"/>
-	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
-	<title th:text="#{privacy.policy}">Privacy Policy</title>
-	<link rel="stylesheet" type="text/css" href="../static/css/core.css" th:href="@{/css/core.css}"/>
-</head>
+<!--/* The policy text is kept here rather than in messages.properties; add privacypolicy_<lang>.html for translations. */-->
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: page(#{privacy.title}, null, ~{::#content})}">
 <body>
-	<section class='container'>
-		<hgroup>
-			<h1 th:text="#{privacy.policy}">Privacy Policy</h1>
-		</hgroup>
-		
-		<br/><br/>
-		<div>
-			<ul>
-				<li>
-					The add-on stores only your account name, account id, and the access data <b>in your Kodi device</b>.
-					This is used to display your account as an option menu in Kodi and to access your drive files.</li>
-				<li>The add-on access your files information only from your Kodi device directly to the cloud drive provider.</li>
-				<li>The add-on uses your files information for the purpose of displaying it in Kodi so you can play your video, music or you can view your pictures.</li>
-				<li>
-					The add-on transmits or shares information only to the developer of this add-on if you explicitly agreed to it and only if an error happened, for the sole purpose of helping to resolve the issues quickly. <br/>
-					This information includes the file id, filename, ip address and never includes sensitive information like access codes, emails or user names. <br/>
-					You can always disable this option in the configuration menu.
-				</li>
-				<li>Each scope requested by the add-on has an specific use and need:<br/>
-					<br/>
-					<u>OneDrive:</u><br/>
-					<table>
-						<tr>
-							<th>Scope</th>
-							<th>Use/Need</th>
-						</tr>
-						<tr>
-							<td>files.read.all</td>
-							<td>Access your file information in Read Only mode to be able to navigate your files and play them in Kodi.</td>
-						</tr>
-						<tr>
-							<td>sites.read.all</td>
-							<td>Access your site files (Business accounts) in Read Only mode to be able to navigate your files and play them in Kodi.</td>
-						</tr>
-						<tr>
-							<td>profile</td>
-							<td>Access your profile information to display your account as an option menu in Kodi.</td>
-						</tr>
-					</table>
-					<br/>
-					<u>Google Drive:</u>
-					<table>
-						<tr>
-							<th>Scope</th>
-							<th>Use/Need</th>
-						</tr>
-						<tr>
-							<td>https://www.googleapis.com/auth/drive.readonly</td>
-							<td>Access your file information in Read Only mode to be able to navigate your files and play them in Kodi.</td>
-						</tr>
-						<tr>
-							<td>https://www.googleapis.com/auth/drive.photos.readonly</td>
-							<td>Access your photos in Read Only mode to be able to navigate your photos and display them in Kodi.</td>
-						</tr>
-						<tr>
-							<td>profile</td>
-							<td>Access your profile information to display your account as an option menu in Kodi.</td>
-						</tr>
-					</table>
-				</li>
-			</ul>
-		</div>
-		<br/><br/>
-		<div>
-			<button type="submit" class="nav-button" th:text="'Back to Home'" th:onclick="'window.location.href=\'' + @{/} + '\''">Next</button>
-		</div>
-	</section>
+<article id="content" class="prose">
+	<h1>Privacy policy</h1>
+	<p class="meta">Last updated: October 4, 2026</p>
+
+	<p>
+		This policy covers the <strong>Google Drive</strong> and <strong>OneDrive</strong> add-ons for Kodi and this sign-in service
+		(drive-login). They are open-source projects developed and run by Carlos Guzman (cguZZman). They are not affiliated with or
+		endorsed by Team Kodi, Google or Microsoft.
+	</p>
+
+	<h2>In short</h2>
+	<ul>
+		<li>The add-ons only <strong>read</strong> your files so you can browse and play them in Kodi. They never change or delete anything.</li>
+		<li>Your files go directly between your Kodi device and Google or Microsoft. They never pass through this server.</li>
+		<li>This server only helps your Kodi device sign in. It keeps sign-in data in memory for at most 3 minutes and never stores it.</li>
+		<li>Nothing is sold, shared with third parties, or used for advertising.</li>
+	</ul>
+
+	<h2>What the add-ons access, and why</h2>
+	<h3>Google Drive</h3>
+	<dl class="scopes">
+		<dt><code>drive.readonly</code> See and download your Google Drive files</dt>
+		<dd>List your folders, shared drives and files, and stream or show them in Kodi. Read-only access.</dd>
+		<dt><code>profile</code> Your name</dt>
+		<dd>Show your account name in the Kodi menu so you can tell accounts apart.</dd>
+	</dl>
+	<h3>OneDrive</h3>
+	<dl class="scopes">
+		<dt><code>Files.Read.All</code></dt>
+		<dd>List and play your OneDrive files, including files shared with you. Read-only access.</dd>
+		<dt><code>Sites.Read.All</code></dt>
+		<dd>List and play files in SharePoint document libraries (work or school accounts). Read-only access.</dd>
+		<dt><code>User.Read</code></dt>
+		<dd>Show your account name in the Kodi menu.</dd>
+		<dt><code>offline_access</code></dt>
+		<dd>Stay signed in without asking you to sign in again every hour.</dd>
+	</dl>
+
+	<h2>How your data flows</h2>
+	<h3>Your files</h3>
+	<p>
+		File names, folders, thumbnails and file contents are requested by your Kodi device directly from Google or Microsoft and are
+		only used to display and play them in Kodi. They never pass through this server.
+	</p>
+	<h3>Signing in</h3>
+	<p>
+		When you enter the code from your TV, this server sends you to Google or Microsoft to sign in. After you approve, the provider
+		sends this server a one-time authorization code. The server exchanges it for access and refresh tokens and holds them
+		<strong>in memory</strong> until your Kodi device collects them, at most 3 minutes later. They are then deleted. Tokens
+		are never written to disk or to logs.
+	</p>
+	<p>
+		To make sure the code is entered from the same network as your Kodi device, the server keeps your public IP address in
+		memory together with the code, also for at most 3 minutes.
+	</p>
+	<h3>Staying signed in</h3>
+	<p>
+		About once an hour, your Kodi device sends its refresh token to this server. The server adds the application's credentials,
+		forwards the request to Google or Microsoft, and returns the new access token to your device. It does not keep or log the
+		tokens.
+	</p>
+	<h3>Hosting</h3>
+	<p>
+		This server is hosted on Heroku (Salesforce). Like any web host, it may process standard request logs, such as IP address,
+		requested address and time, to operate the service. Request contents, including tokens, are not part of these logs.
+	</p>
+
+	<h2>What is stored on your Kodi device</h2>
+	<p>
+		For each account, the add-ons store your account ID, account name, the list of your drives, and the access and refresh tokens.
+		These are kept in the add-on's data folder on your Kodi device, together with a temporary cache of folder listings.
+	</p>
+
+	<h2>Error reports</h2>
+	<p>
+		The add-ons have an optional <em>Report errors</em> setting, which is off by default. This service does not currently accept or
+		store error reports.
+	</p>
+
+	<h2>Google API Services</h2>
+	<p>
+		The use and transfer of information received from Google APIs adheres to the
+		<a href="https://developers.google.com/terms/api-services-user-data-policy">Google API Services User Data Policy</a>,
+		including the Limited Use requirements. Google user data is never sold, used for advertising, transferred to third parties,
+		or used to train AI models.
+	</p>
+
+	<h2>Your choices</h2>
+	<ul>
+		<li><strong>Remove an account in Kodi:</strong> open the add-on, bring up the context menu on the account, and choose to remove it. This deletes its tokens and account data from your device.</li>
+		<li>
+			<strong>Revoke access at any time:</strong>
+			<a href="https://myaccount.google.com/permissions">Google account permissions</a>,
+			<a href="https://account.live.com/consent/Manage">Microsoft personal account</a> or
+			<a href="https://myapplications.microsoft.com/">Microsoft work or school account</a>.
+		</li>
+		<li>This server keeps no data about you beyond the 3-minute sign-in window, so there is nothing else to delete.</li>
+	</ul>
+
+	<h2>Donations</h2>
+	<p>
+		If you choose to support the project, the donation is handled by the donation platform under its own privacy policy. Donations
+		are not linked to your Kodi accounts.
+	</p>
+
+	<h2>Contact</h2>
+	<p>
+		Questions about this policy: open an issue at
+		<a href="https://github.com/cguZZman/drive-login/issues">github.com/cguZZman/drive-login</a>.
+	</p>
+</article>
 </body>
 </html>
