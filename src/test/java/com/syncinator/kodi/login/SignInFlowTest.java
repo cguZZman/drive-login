@@ -33,7 +33,7 @@ class SignInFlowTest extends IntegrationTest {
 
 	@ParameterizedTest
 	@CsvSource({
-			"googledrive, https://www.googleapis.com/auth/drive.readonly profile,   GET",
+			"googledrive, https://www.googleapis.com/auth/drive.readonly,           GET",
 			"onedrive,    offline_access sites.read.all files.read.all user.read, POST"})
 	void signInFlow(final String provider, final String expectedScope, final String callbackMethod) throws Exception {
 		final Map<String, Object> pin = json(postForm("/pin", Map.of("provider", provider)));
@@ -155,7 +155,7 @@ class SignInFlowTest extends IntegrationTest {
 		final HttpResponse<String> success = get("/auth-success");
 		assertThat(success.statusCode()).isEqualTo(200);
 		assertThat(success.body()).contains("signed in").doesNotContain("class=\"funding\"");
-		assertThat(get("/privacypolicy").body()).contains("Limited Use");
+		assertThat(get("/privacypolicy").body()).contains("Limited Use").doesNotContain("profile");
 	}
 
 	@Test
