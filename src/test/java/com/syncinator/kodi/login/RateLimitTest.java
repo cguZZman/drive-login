@@ -10,7 +10,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Low limits so they are easy to hit. Each test uses its own client address (the last X-Forwarded-For
- * entry, as appended by Heroku's router) so the counters of one test don't affect another.
+ * entry, as added by Heroku's router; the tests connect from 127.0.0.1, a trusted proxy address) so the
+ * counters of one test don't affect another.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
 		"rate-limit.pin=2", "rate-limit.signin=2", "rate-limit.refresh.ip=3", "rate-limit.refresh.token=2"})
@@ -31,7 +32,7 @@ class RateLimitTest extends IntegrationTest {
 
 	@Test
 	void forgedForwardedForEntriesDoNotEscapeTheLimit() throws Exception {
-		// Only the last entry counts: it is the one Heroku's router appends; earlier ones come from the client.
+		// Only the last entry counts: it is the one Heroku's router adds; earlier ones come from the client.
 		assertThat(postForm("/pin", Map.of("provider", "onedrive"), forwardedFor("1.1.1.1, 203.0.113.3")).statusCode()).isEqualTo(200);
 		assertThat(postForm("/pin", Map.of("provider", "onedrive"), forwardedFor("2.2.2.2, 203.0.113.3")).statusCode()).isEqualTo(200);
 		assertThat(postForm("/pin", Map.of("provider", "onedrive"), forwardedFor("3.3.3.3, 203.0.113.3")).statusCode()).isEqualTo(429);
@@ -40,7 +41,7 @@ class RateLimitTest extends IntegrationTest {
 
 	@Test
 	void routerValueOnASeparateHeaderLineWins() throws Exception {
-		// Heroku's router keeps a client-sent X-Forwarded-For line and adds its own as another line.
+		// The router's entry may also arrive as a separate header line.
 		assertThat(get("/ip", "X-Forwarded-For", "1.2.3.4", "X-Forwarded-For", "203.0.113.9").body()).isEqualTo("203.0.113.9");
 		assertThat(get("/ip", "X-Forwarded-For", "1.2.3.4, 5.6.7.8", "X-Forwarded-For", "203.0.113.9").body()).isEqualTo("203.0.113.9");
 	}
