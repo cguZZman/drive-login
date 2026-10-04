@@ -39,6 +39,13 @@ class RateLimitTest extends IntegrationTest {
 	}
 
 	@Test
+	void routerValueOnASeparateHeaderLineWins() throws Exception {
+		// Heroku's router keeps a client-sent X-Forwarded-For line and adds its own as another line.
+		assertThat(get("/ip", "X-Forwarded-For", "1.2.3.4", "X-Forwarded-For", "203.0.113.9").body()).isEqualTo("203.0.113.9");
+		assertThat(get("/ip", "X-Forwarded-For", "1.2.3.4, 5.6.7.8", "X-Forwarded-For", "203.0.113.9").body()).isEqualTo("203.0.113.9");
+	}
+
+	@Test
 	void signInPagesAreLimitedWithAFriendlyPage() throws Exception {
 		final String[] client = forwardedFor("203.0.113.4");
 		assertThat(get("/authorize?pin=AAAAAA", client).statusCode()).isEqualTo(200);
