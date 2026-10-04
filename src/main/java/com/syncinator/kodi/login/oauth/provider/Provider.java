@@ -1,9 +1,11 @@
 package com.syncinator.kodi.login.oauth.provider;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.json.JsonParserFactory;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -34,6 +36,10 @@ public abstract class Provider {
 	@Value("${callback.url}")
 	protected String callbackUrl;
 
+	// Resolves the PROVIDER_* environment variables, and also plain properties (used by tests).
+	@Autowired
+	private Environment environment;
+
 	public String getAuthorizeUrl(final String name, final String pin, final Map<String,String> extraParams) {
 		final UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(getEnv(name, ENV_URL_AUTHORIZE))
 				.queryParam("client_id", getEnv(name, ENV_CLIENT_ID))
@@ -45,7 +51,8 @@ public abstract class Provider {
 				builder.queryParam(e.getKey(), e.getValue());
 			}
 		}
-		return builder.build().toUriString();
+		// Encoded so the space-separated scope list becomes a valid URL in the Location header.
+		return builder.build().encode().toUriString();
 		
 	}
 	
@@ -97,7 +104,7 @@ public abstract class Provider {
 	}
 	
 	protected String getEnv(final String provider, final String var) {
-		return System.getenv(ENV_PREFIX + getEnvProvider(provider.toUpperCase()) + var);
+		return environment.getProperty(ENV_PREFIX + getEnvProvider(provider.toUpperCase()) + var);
 	}
 	protected String getEnvProvider(final String provider) {
 		return provider.replace('.', '_');
