@@ -73,20 +73,48 @@
 	</p>
 	<h3>Hosting</h3>
 	<p>
-		This server is hosted on Heroku (Salesforce). Like any web host, it may process standard request logs, such as IP address,
-		requested address and time, to operate the service. Request contents, including tokens, are not part of these logs.
+		This server is hosted on Heroku (Salesforce). Like any web host, it processes standard request logs (IP address, requested
+		address and time) to operate the service. Request contents, including tokens, are not part of these logs. Heroku keeps only
+		the most recent 1,500 log lines in a rolling buffer; they are not archived or forwarded anywhere.
 	</p>
 
 	<h2>What is stored on your Kodi device</h2>
 	<p>
 		For each account, the add-ons store your account ID, account name, the list of your drives, and the access and refresh tokens.
-		These are kept in the add-on's data folder on your Kodi device, together with a temporary cache of folder listings.
+		These are kept in the add-on's data folder on your Kodi device, together with a temporary cache of folder listings that
+		expires after a few minutes (5 by default, configurable in the add-on settings).
 	</p>
+
+	<h2>How your data is protected</h2>
+	<p>Google user data and sign-in tokens are sensitive, and are protected as follows:</p>
+	<ul>
+		<li><strong>Encryption in transit:</strong> all traffic between your browser, your Kodi device, this server, Google and Microsoft uses HTTPS (TLS). This server only accepts HTTPS and tells browsers to never use plain HTTP (HSTS).</li>
+		<li><strong>Data minimization:</strong> only read-only access is requested. This server never requests your files or their details, and keeps no database of users, accounts or Google user data.</li>
+		<li><strong>Token handling:</strong> on this server, tokens exist only in memory, for at most 3 minutes during sign-in or for the duration of a refresh request. They are never written to disk, to a database or to logs. On your Kodi device, the add-ons remove tokens from everything they write to the Kodi log.</li>
+		<li><strong>Access control:</strong> a sign-in code can only be used from the same network as the Kodi device that requested it, must be finished in the same browser that started it (a one-time cookie and PKCE), and the resulting tokens can only be collected with a random secret known only to that Kodi device. Codes expire after 3 minutes and work once. Requests are rate-limited to prevent abuse.</li>
+		<li><strong>Application credentials:</strong> the client secrets are kept in the hosting provider's protected configuration, not in the source code.</li>
+		<li><strong>No human access:</strong> nobody, including the developer, can see your files or tokens through this service.</li>
+		<li><strong>Open source:</strong> the add-ons and this server are open source, so how they handle data can be reviewed by anyone.</li>
+	</ul>
+
+	<h2>Retention and deletion of Google user data</h2>
+	<ul>
+		<li><strong>On this server:</strong> no Google user data is retained. Sign-in tokens are deleted as soon as your Kodi device collects them, and at most 3 minutes after the sign-in started. Refresh requests are passed to Google and answered without keeping anything.</li>
+		<li><strong>On your Kodi device:</strong> your account ID, name, drive list and tokens stay on your device until you remove the account in the add-on. Cached folder listings expire after a few minutes.</li>
+		<li><strong>Deleting your data:</strong> remove the account in Kodi (open the add-on, bring up the context menu on the account, and choose to remove it). This deletes its tokens and account data from your device. Uninstalling the add-on and deleting its data folder removes everything it stored.</li>
+		<li>
+			<strong>Revoking access:</strong> you can revoke the add-on's access at any time in your
+			<a href="https://myaccount.google.com/permissions">Google account permissions</a>,
+			<a href="https://account.live.com/consent/Manage">Microsoft personal account</a> or
+			<a href="https://myapplications.microsoft.com/">Microsoft work or school account</a>. The tokens stop working immediately.
+		</li>
+		<li>Because this server keeps no data about you, there is nothing to delete on the server. If you have questions about your data, use the contact below.</li>
+	</ul>
 
 	<h2>Error reports</h2>
 	<p>
-		The add-ons have an optional <em>Report errors</em> setting, which is off by default. This service does not currently accept or
-		store error reports.
+		The add-ons do not send error reports. Errors are only written to the Kodi log on your device, with tokens removed.
+		Older add-on versions had an optional <em>Report errors</em> setting; this service does not accept or store those reports.
 	</p>
 
 	<h2>Google API Services</h2>
@@ -96,18 +124,6 @@
 		including the Limited Use requirements. Google user data is never sold, used for advertising, transferred to third parties,
 		or used to train AI models.
 	</p>
-
-	<h2>Your choices</h2>
-	<ul>
-		<li><strong>Remove an account in Kodi:</strong> open the add-on, bring up the context menu on the account, and choose to remove it. This deletes its tokens and account data from your device.</li>
-		<li>
-			<strong>Revoke access at any time:</strong>
-			<a href="https://myaccount.google.com/permissions">Google account permissions</a>,
-			<a href="https://account.live.com/consent/Manage">Microsoft personal account</a> or
-			<a href="https://myapplications.microsoft.com/">Microsoft work or school account</a>.
-		</li>
-		<li>This server keeps no data about you beyond the 3-minute sign-in window, so there is nothing else to delete.</li>
-	</ul>
 
 	<h2>Donations</h2>
 	<p>
