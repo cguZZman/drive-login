@@ -1,17 +1,21 @@
 package com.syncinator.kodi.login.oauth.provider;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.json.JsonParserFactory;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.MediaType;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 import java.util.Map;
 import java.util.Map.Entry;
 
+@Slf4j
 public abstract class Provider {
 	public static final String NAME_PREFIX = "provider.";
 	public static final String ENV_PREFIX = "PROVIDER_";
@@ -58,7 +62,28 @@ public abstract class Provider {
 		}
 		params.add("grant_type", grantType);
 		params.add(grantType.replace("authorization_", ""), value);
-		return oauthPost(getEnv(name, ENV_URL_TOKEN), params);
+		try {
+			return oauthPost(getEnv(name, ENV_URL_TOKEN), params);
+		} catch (final RestClientResponseException e) {
+			// Only the provider's error code and description: never the token or the raw response body.
+			final Map<String,Object> error = parseError(e.getResponseBodyAsString());
+			log.warn("Token request failed: provider={} grant_type={} status={} error={} description={}",
+					name, grantType, e.getStatusCode().value(), error.get("error"), truncate(error.get("error_description")));
+			throw e;
+		}
+	}
+
+	private static Map<String,Object> parseError(final String body) {
+		try {
+			return JsonParserFactory.getJsonParser().parseMap(body);
+		} catch (final RuntimeException e) {
+			return Map.of();
+		}
+	}
+
+	private static String truncate(final Object value) {
+		final String text = String.valueOf(value);
+		return text.length() > 200 ? text.substring(0, 200) + "..." : text;
 	}
 
 	protected Map<String,Object> oauthPost(final String url, final MultiValueMap<String, String> params) {

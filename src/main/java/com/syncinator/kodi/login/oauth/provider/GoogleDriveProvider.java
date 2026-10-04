@@ -11,7 +11,7 @@ public class GoogleDriveProvider extends Provider {
 	@Override
 	public String authorize(final String pin) {
 		return getAuthorizeUrl(NAME, pin, Map.of(
-				"scope", "https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/drive.photos.readonly https://www.googleapis.com/auth/photoslibrary.readonly profile",
+				"scope", "https://www.googleapis.com/auth/drive.readonly profile",
 				"access_type", "offline",
 				"prompt", "consent"));
 	}
