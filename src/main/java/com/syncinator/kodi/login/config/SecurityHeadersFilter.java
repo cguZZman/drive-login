@@ -4,12 +4,16 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
+// Runs first so the headers are also on responses other filters end early (e.g. 429).
 @Component
+@Order(Ordered.HIGHEST_PRECEDENCE)
 public class SecurityHeadersFilter extends OncePerRequestFilter {
 	// No inline scripts or styles anywhere. form-action allows https: because
 	// /authorize answers the code form with a redirect to the provider's sign-in page.

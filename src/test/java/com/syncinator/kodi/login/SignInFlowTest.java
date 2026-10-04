@@ -4,22 +4,15 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.json.JsonParserFactory;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.io.IOException;
 import java.net.URI;
-import java.net.URLEncoder;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
@@ -30,75 +23,62 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * End-to-end check of the sign-in server over real HTTP: pin creation, the redirect to the provider,
  * the callback, token pickup by Kodi and token refresh, for every provider, against a mock token endpoint.
+ * Rate limits are off here; RateLimitTest covers them.
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
+		"rate-limit.pin=0", "rate-limit.signin=0", "rate-limit.refresh.ip=0", "rate-limit.refresh.token=0"})
 @ExtendWith(OutputCaptureExtension.class)
-class SignInFlowTest {
-	static final MockTokenServer TOKENS = new MockTokenServer();
-	static final String CALLBACK = "https://drive-login.example.com/callback";
-
-	@DynamicPropertySource
-	static void providers(final DynamicPropertyRegistry registry) {
-		for (final String provider : List.of("googledrive", "onedrive")) {
-			final String prefix = "PROVIDER_" + provider.toUpperCase();
-			registry.add(prefix + "_CLIENT_ID", () -> provider + "-client");
-			registry.add(prefix + "_CLIENT_SECRET", () -> provider + "-secret");
-			registry.add(prefix + "_URL_AUTHORIZE", () -> "https://login.example.com/" + provider + "/authorize");
-			registry.add(prefix + "_URL_TOKEN", TOKENS::tokenUrl);
-		}
-		registry.add("callback.url", () -> CALLBACK);
-	}
-
-	@Value("${local.server.port}")
-	private int port;
-
-	// Never follows redirects, so the tests see the 302s.
-	private final HttpClient http = HttpClient.newHttpClient();
+class SignInFlowTest extends IntegrationTest {
+	static final String COOKIE = "__Host-signin";
 
 	@ParameterizedTest
 	@CsvSource({
-			"googledrive, https://www.googleapis.com/auth/drive.readonly, GET",
-			"onedrive,    files.read.all,                                 POST"})
+			"googledrive, https://www.googleapis.com/auth/drive.readonly profile,   GET",
+			"onedrive,    offline_access sites.read.all files.read.all user.read, POST"})
 	void signInFlow(final String provider, final String expectedScope, final String callbackMethod) throws Exception {
 		final Map<String, Object> pin = json(postForm("/pin", Map.of("provider", provider)));
 		final String code = (String) pin.get("pin");
 		final String password = (String) pin.get("password");
 		assertThat(code).matches("[0-9A-F]{6}");
 		assertThat(password).hasSizeGreaterThan(100);
+		assertThat(pin).as("browser secrets are never sent to Kodi").doesNotContainKeys("browserNonce", "codeVerifier");
 
 		assertThat(get("/pin/" + code, basic(password)).statusCode()).as("poll before sign-in").isEqualTo(202);
 		assertThat(get("/pin/" + code, basic("wrong")).statusCode()).as("poll with wrong password").isEqualTo(404);
 
 		final HttpResponse<String> signin = get("/signin/" + code);
 		assertThat(signin.statusCode()).isEqualTo(302);
+		final String setCookie = signin.headers().firstValue("Set-Cookie").orElseThrow();
+		assertThat(setCookie).startsWith(COOKIE + "=").contains("Path=/", "Max-Age=300", "Secure", "HttpOnly", "SameSite=None");
+		final String browser = cookie(setCookie);
+
 		final URI authorize = URI.create(location(signin));
 		assertThat(authorize.getHost() + authorize.getPath()).isEqualTo("login.example.com/" + provider + "/authorize");
-		final Map<String, String> query = UriComponentsBuilder.fromUri(authorize).build().getQueryParams().toSingleValueMap()
-				.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> decode(e.getValue())));
+		final Map<String, String> query = query(authorize);
 		assertThat(query)
 				.containsEntry("client_id", provider + "-client")
 				.containsEntry("redirect_uri", CALLBACK)
 				.containsEntry("response_type", "code")
-				.containsEntry("state", code);
-		assertThat(query.get("scope")).contains(expectedScope);
+				.containsEntry("state", code)
+				.containsEntry("scope", expectedScope)
+				.containsEntry("code_challenge_method", "S256");
 		if (provider.equals("onedrive")) {
 			assertThat(query).containsEntry("response_mode", "form_post");
 		} else {
 			assertThat(query).containsEntry("access_type", "offline").containsEntry("prompt", "consent");
-			assertThat(query.get("scope")).as("Photos access was removed (Photos API AUP-3)").doesNotContain("photos");
 		}
 
-		final HttpResponse<String> callback = callbackMethod.equals("POST")
-				? postForm("/callback", Map.of("code", "the-code", "state", code))
-				: get("/callback?code=the-code&state=" + code);
+		final HttpResponse<String> callback = callback(callbackMethod, code, "the-code", browser);
 		assertThat(callback.statusCode()).isEqualTo(302);
 		assertThat(location(callback)).endsWith("auth-success");
+		assertThat(callback.headers().firstValue("Set-Cookie")).as("cookie cleared").hasValueSatisfying(c -> assertThat(c).contains("Max-Age=0"));
 		assertThat(TOKENS.lastForm())
 				.containsEntry("grant_type", "authorization_code")
 				.containsEntry("code", "the-code")
 				.containsEntry("client_id", provider + "-client")
 				.containsEntry("client_secret", provider + "-secret")
 				.containsEntry("redirect_uri", CALLBACK);
+		assertThat(s256(TOKENS.lastForm().get("code_verifier"))).as("PKCE verifier matches the challenge").isEqualTo(query.get("code_challenge"));
 
 		final HttpResponse<String> tokens = get("/pin/" + code, basic(password));
 		assertThat(tokens.statusCode()).isEqualTo(200);
@@ -111,7 +91,31 @@ class SignInFlowTest {
 		assertThat(TOKENS.lastForm())
 				.containsEntry("grant_type", "refresh_token")
 				.containsEntry("refresh_token", "RT")
-				.containsEntry("client_secret", provider + "-secret");
+				.containsEntry("client_secret", provider + "-secret")
+				.doesNotContainKey("code_verifier");
+	}
+
+	@ParameterizedTest
+	@CsvSource({"googledrive, GET", "onedrive, POST"})
+	void callbackOnlyWorksInTheBrowserThatStartedTheSignIn(final String provider, final String callbackMethod) throws Exception {
+		// The attack: someone creates a code, starts the sign-in in their own browser and sends the provider link to a victim.
+		final Map<String, Object> pin = json(postForm("/pin", Map.of("provider", provider)));
+		final String code = (String) pin.get("pin");
+		final String password = (String) pin.get("password");
+		final String attackerBrowser = cookie(get("/signin/" + code).headers().firstValue("Set-Cookie").orElseThrow());
+
+		assertThat(callback(callbackMethod, code, "victim-code", null).body()).contains("different browser");
+		assertThat(callback(callbackMethod, code, "victim-code", "forged").body()).contains("different browser");
+		assertThat(get("/pin/" + code, basic(password)).statusCode()).as("no tokens stored").isEqualTo(202);
+
+		assertThat(callback(callbackMethod, code, "own-code", attackerBrowser).statusCode()).isEqualTo(302);
+		assertThat(callback(callbackMethod, code, "replayed-code", attackerBrowser).body()).as("single use").contains("different browser");
+	}
+
+	@Test
+	void callbackWithoutStartingTheSignInIsRejected() throws Exception {
+		final String code = (String) json(postForm("/pin", Map.of("provider", "googledrive"))).get("pin");
+		assertThat(callback("GET", code, "x", "anything").body()).contains("different browser");
 	}
 
 	@Test
@@ -181,41 +185,24 @@ class SignInFlowTest {
 		}
 	}
 
-	private HttpResponse<String> get(final String path, final String... headers) throws IOException, InterruptedException {
-		final HttpRequest.Builder request = HttpRequest.newBuilder(url(path)).GET();
-		if (headers.length > 0) {
-			request.headers(headers);
-		}
-		return http.send(request.build(), HttpResponse.BodyHandlers.ofString());
+	private HttpResponse<String> callback(final String method, final String state, final String code, final String browser) throws Exception {
+		final String[] headers = browser == null ? new String[0] : new String[] {"Cookie", COOKIE + "=" + browser};
+		return method.equals("POST")
+				? postForm("/callback", Map.of("code", code, "state", state), headers)
+				: get("/callback?code=" + code + "&state=" + state, headers);
 	}
 
-	private HttpResponse<String> postForm(final String path, final Map<String, String> form) throws IOException, InterruptedException {
-		final String body = form.entrySet().stream()
-				.map(e -> URLEncoder.encode(e.getKey(), StandardCharsets.UTF_8) + "=" + URLEncoder.encode(e.getValue(), StandardCharsets.UTF_8))
-				.collect(Collectors.joining("&"));
-		return http.send(HttpRequest.newBuilder(url(path))
-				.header("Content-Type", "application/x-www-form-urlencoded")
-				.POST(HttpRequest.BodyPublishers.ofString(body))
-				.build(), HttpResponse.BodyHandlers.ofString());
+	private static String cookie(final String setCookie) {
+		return setCookie.substring(setCookie.indexOf('=') + 1, setCookie.indexOf(';'));
 	}
 
-	private URI url(final String path) {
-		return URI.create("http://localhost:" + port + path);
+	private static Map<String, String> query(final URI uri) {
+		return UriComponentsBuilder.fromUri(uri).build().getQueryParams().toSingleValueMap()
+				.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> decode(e.getValue())));
 	}
 
-	private static String[] basic(final String password) {
-		return new String[] {"Authorization", "Basic " + Base64.getEncoder().encodeToString((":" + password).getBytes(StandardCharsets.UTF_8))};
-	}
-
-	private static String location(final HttpResponse<String> response) {
-		return response.headers().firstValue("Location").orElseThrow();
-	}
-
-	private static Map<String, Object> json(final HttpResponse<String> response) {
-		return JsonParserFactory.getJsonParser().parseMap(response.body());
-	}
-
-	private static String decode(final String value) {
-		return java.net.URLDecoder.decode(value, StandardCharsets.UTF_8);
+	private static String s256(final String verifier) throws Exception {
+		return Base64.getUrlEncoder().withoutPadding()
+				.encodeToString(MessageDigest.getInstance("SHA-256").digest(verifier.getBytes(StandardCharsets.US_ASCII)));
 	}
 }

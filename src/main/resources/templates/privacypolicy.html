@@ -54,6 +54,11 @@
 		are never written to disk or to logs.
 	</p>
 	<p>
+		While you sign in, the server sets one temporary cookie in your browser. It makes sure the sign-in is finished in the same
+		browser that started it, so nobody can trick you into approving a sign-in for their device. It is removed when the sign-in
+		completes and expires after 5 minutes at most. It is not used for anything else.
+	</p>
+	<p>
 		To make sure the code is entered from the same network as your Kodi device, the server keeps your public IP address in
 		memory together with the code, also for at most 3 minutes.
 	</p>
@@ -62,6 +67,11 @@
 		About once an hour, your Kodi device sends its refresh token to this server. The server adds the application's credentials,
 		forwards the request to Google or Microsoft, and returns the new access token to your device. It does not keep or log the
 		tokens.
+	</p>
+	<h3>Abuse protection</h3>
+	<p>
+		To protect the service, the server counts requests per IP address, and token refreshes per one-way hash of the refresh
+		token. These counters are kept in memory for one minute and are never stored.
 	</p>
 	<h3>Hosting</h3>
 	<p>

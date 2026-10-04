@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: page(#{error.toomany.title}, null, ~{::#content})}">
+<body>
+<div id="content" class="status">
+	<h1 th:text="#{error.toomany.title}">Too many attempts</h1>
+	<p class="lead" th:text="#{error.toomany.text}">Please wait a minute and try again.</p>
+	<a class="button primary" th:href="@{/}" href="/" th:text="#{failure.retry}">Enter a new code</a>
+</div>
+</body>
+</html>

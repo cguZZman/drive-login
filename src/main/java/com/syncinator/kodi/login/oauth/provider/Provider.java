@@ -30,7 +30,8 @@ public abstract class Provider {
 	
 	protected RestClient restClient = RestClient.create();
 	
-	public abstract String authorize(String pin);
+	public abstract String authorize(String pin, String codeChallenge);
+	public abstract Map<String,Object> exchangeCode(String code, String codeVerifier);
 	public abstract Map<String,Object> tokens(String grantType, String value);
 	
 	@Value("${callback.url}")
@@ -40,12 +41,14 @@ public abstract class Provider {
 	@Autowired
 	private Environment environment;
 
-	public String getAuthorizeUrl(final String name, final String pin, final Map<String,String> extraParams) {
+	public String getAuthorizeUrl(final String name, final String pin, final String codeChallenge, final Map<String,String> extraParams) {
 		final UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(getEnv(name, ENV_URL_AUTHORIZE))
 				.queryParam("client_id", getEnv(name, ENV_CLIENT_ID))
 				.queryParam("redirect_uri", callbackUrl)
 				.queryParam("state", pin)
-				.queryParam("response_type", "code");
+				.queryParam("response_type", "code")
+				.queryParam("code_challenge", codeChallenge)
+				.queryParam("code_challenge_method", "S256");
 		if (extraParams != null && !extraParams.isEmpty()) {
 			for (final Entry<String,String> e : extraParams.entrySet()) {
 				builder.queryParam(e.getKey(), e.getValue());
@@ -60,6 +63,14 @@ public abstract class Provider {
 			final String name,
 			final String grantType,
 			final String value) {
+		return getTokens(name, grantType, value, null);
+	}
+
+	protected Map<String,Object> getTokens(
+			final String name,
+			final String grantType,
+			final String value,
+			final String codeVerifier) {
 		final MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
 		params.add("client_id", getEnv(name, ENV_CLIENT_ID));
 		params.add("redirect_uri", callbackUrl);
@@ -69,6 +80,9 @@ public abstract class Provider {
 		}
 		params.add("grant_type", grantType);
 		params.add(grantType.replace("authorization_", ""), value);
+		if (codeVerifier != null) {
+			params.add("code_verifier", codeVerifier);
+		}
 		try {
 			return oauthPost(getEnv(name, ENV_URL_TOKEN), params);
 		} catch (final RestClientResponseException e) {

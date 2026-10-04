@@ -3,7 +3,7 @@ package com.syncinator.kodi.login.controller;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.syncinator.kodi.login.model.Pin;
 import com.syncinator.kodi.login.oauth.provider.Provider;
-import com.syncinator.kodi.login.util.Utils;
+import com.syncinator.kodi.login.util.ClientAddress;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
@@ -39,6 +39,8 @@ public class ApiController {
 	private SecureRandom random;
 	@NonNull
 	private Cache<Object, Object> cache;
+	@NonNull
+	private ClientAddress clientAddress;
 
 	@PostMapping("/pin")
 	public Pin generatePin(@RequestParam final String provider, final HttpServletRequest request) {
@@ -51,7 +53,7 @@ public class ApiController {
 				.pin(pin.toUpperCase())
 				.password(new BigInteger(2048, random).toString(16).toLowerCase())
 				.provider(provider)
-				.owner(Utils.getRemoteAddress(request))
+				.owner(clientAddress.of(request))
 				.build();
 		cache.put(pin, response);
 		return response;
@@ -66,7 +68,7 @@ public class ApiController {
 		final String key = pin.toLowerCase();
 		final Pin storedPin = (Pin) cache.getIfPresent(key);
 		final String auth = request.getHeader("authorization");
-		if (storedPin != null && auth != null && storedPin.getOwner().equals(Utils.getRemoteAddress(request))) {
+		if (storedPin != null && auth != null && storedPin.getOwner().equals(clientAddress.of(request))) {
 			final String[] data = auth.split(" ");
 			if (data.length == 2 && data[0].equalsIgnoreCase("basic")) {
 				final String[] credentials = new String(Base64.getDecoder().decode(data[1])).split(":");
@@ -99,7 +101,7 @@ public class ApiController {
 
 	@GetMapping("/ip")
 	public String ip(final HttpServletRequest request) {
-		return Utils.getRemoteAddress(request);
+		return clientAddress.of(request);
 	}
 
 	@SneakyThrows
