@@ -41,6 +41,13 @@ class RateLimitTest extends IntegrationTest {
 	}
 
 	@Test
+	void ipv4AndIpv6LoopbackAreTheSameClient() throws Exception {
+		// Locally, Kodi may connect over IPv4 and the browser over IPv6; pairing compares these addresses.
+		assertThat(getFromHost("127.0.0.1", "/ip").body()).isEqualTo("127.0.0.1");
+		assertThat(getFromHost("[::1]", "/ip").body()).isEqualTo("127.0.0.1");
+	}
+
+	@Test
 	void routerValueOnASeparateHeaderLineWins() throws Exception {
 		// The router's entry may also arrive as a separate header line.
 		assertThat(get("/ip", "X-Forwarded-For", "1.2.3.4", "X-Forwarded-For", "203.0.113.9").body()).isEqualTo("203.0.113.9");

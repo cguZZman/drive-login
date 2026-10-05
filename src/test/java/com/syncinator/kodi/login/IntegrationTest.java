@@ -66,6 +66,10 @@ abstract class IntegrationTest {
 		return URI.create("http://localhost:" + port + path);
 	}
 
+	HttpResponse<String> getFromHost(final String host, final String path) throws IOException, InterruptedException {
+		return http.send(HttpRequest.newBuilder(URI.create("http://" + host + ":" + port + path)).build(), HttpResponse.BodyHandlers.ofString());
+	}
+
 	static String[] basic(final String password) {
 		return new String[] {"Authorization", "Basic " + Base64.getEncoder().encodeToString((":" + password).getBytes(StandardCharsets.UTF_8))};
 	}
