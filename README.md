@@ -22,7 +22,7 @@ See **[SETUP.md](SETUP.md)** for creating the Google and Microsoft OAuth apps, c
 
 ## Build and test
 
-Requires Java 21. The Maven wrapper downloads everything else.
+Requires Java 25. The Maven wrapper downloads everything else.
 
 ```bash
 ./mvnw test

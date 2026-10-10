@@ -4,7 +4,7 @@ This guide sets up your own instance of drive-login, so your Kodi add-ons sign i
 
 You need:
 
-- Java 21 (the Maven wrapper in this repository downloads everything else).
+- Java 25 (the Maven wrapper in this repository downloads everything else).
 - An address reachable over **HTTPS** by your phone or computer and by your Kodi devices, for example a Heroku app or your own server behind a reverse proxy.
 - A Google Cloud project for Google Drive, a Microsoft Entra app registration for OneDrive, or both.
 
@@ -116,7 +116,7 @@ Whatever the host:
 
 ### Heroku
 
-The repository includes a `Procfile` and `system.properties` (Java 21).
+The repository includes a `Procfile` and `system.properties` (Java 25).
 
 ```bash
 heroku create my-drive-login
