@@ -6,6 +6,8 @@ A TV can't easily show a Google or Microsoft sign-in page, and the add-ons can't
 
 The public instance runs at <https://drive-login.herokuapp.com>. You can also [host your own](SETUP.md) and point the add-ons at it.
 
+Its successor, [signin-server](https://github.com/cguZZman/signin-server), runs on Cloudflare Workers at <https://signinserver.com> with the same protocol. This instance keeps serving add-on versions that still point at it.
+
 ## How the sign-in works
 
 1. In Kodi, the add-on asks the service for a short code (`POST /pin`) and shows it on screen together with the service address and a QR code.
@@ -30,3 +32,11 @@ Requires Java 25. The Maven wrapper downloads everything else.
 ```
 
 The tests run the whole sign-in over real HTTP for both providers (code, redirect to the provider, callback, token pickup, refresh) against a mock token endpoint, plus the pages, error messages, rate limits, HTTPS redirect and security headers. No real Google or Microsoft credentials are needed.
+
+## License
+
+Copyright (C) 2017-2026 Carlos Guzman (cguZZman).
+
+This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. See [LICENSE](LICENSE).
+
+If you run a modified version of this service for others, the license requires you to offer them its source code.
