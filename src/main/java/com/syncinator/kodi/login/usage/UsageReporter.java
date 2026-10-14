@@ -28,7 +28,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Anonymous usage counts, sent every hour to the new sign-in server (POST /usage/report), which stores them
+ * Anonymous usage counts, sent every hour to the new sign-in server (POST /ingest/usage), which stores them
  * with its own. Nothing identifying is counted or sent: no IP addresses, tokens or hashes. Daily active
  * accounts are counted with a set of token hashes kept in memory for the current UTC day only.
  * Turned off unless USAGE_REPORT_URL and USAGE_REPORT_TOKEN are set.

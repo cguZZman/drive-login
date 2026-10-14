@@ -23,7 +23,7 @@ class UsageReporterTest {
 	@BeforeEach
 	void start() throws IOException {
 		server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
-		server.createContext("/usage/report", exchange -> {
+		server.createContext("/ingest/usage", exchange -> {
 			bodies.add(new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8));
 			authorizations.add(exchange.getRequestHeaders().getFirst("Authorization"));
 			exchange.sendResponseHeaders(status, -1);
@@ -38,7 +38,7 @@ class UsageReporterTest {
 	}
 
 	private UsageReporter reporter() {
-		return new UsageReporter("http://127.0.0.1:" + server.getAddress().getPort() + "/usage/report", "report-token");
+		return new UsageReporter("http://127.0.0.1:" + server.getAddress().getPort() + "/ingest/usage", "report-token");
 	}
 
 	@Test
