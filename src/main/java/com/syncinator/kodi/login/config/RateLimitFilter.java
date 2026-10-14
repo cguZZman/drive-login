@@ -2,6 +2,7 @@ package com.syncinator.kodi.login.config;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.syncinator.kodi.login.usage.UsageReporter;
 import com.syncinator.kodi.login.util.ClientAddress;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -41,6 +42,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
 			.maximumSize(200_000)
 			.build();
 	private final ClientAddress clientAddress;
+	private final UsageReporter usage;
 	private final int pinLimit;
 	private final int signinLimit;
 	private final int refreshIpLimit;
@@ -48,11 +50,13 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
 	public RateLimitFilter(
 			final ClientAddress clientAddress,
+			final UsageReporter usage,
 			@Value("${rate-limit.pin}") final int pinLimit,
 			@Value("${rate-limit.signin}") final int signinLimit,
 			@Value("${rate-limit.refresh.ip}") final int refreshIpLimit,
 			@Value("${rate-limit.refresh.token}") final int refreshTokenLimit) {
 		this.clientAddress = clientAddress;
+		this.usage = usage;
 		this.pinLimit = pinLimit;
 		this.signinLimit = signinLimit;
 		this.refreshIpLimit = refreshIpLimit;
@@ -67,6 +71,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
 		final String limited = exceededLimit(request);
 		if (limited != null) {
 			log.warn("Rate limit exceeded: {}", limited);
+			usage.count("rate_limited", "", "rejected", limited, request.getHeader("addon"));
 			response.setHeader("Retry-After", String.valueOf(WINDOW.toSeconds()));
 			response.sendError(HttpStatus.TOO_MANY_REQUESTS.value(), "Too many requests");
 			return;

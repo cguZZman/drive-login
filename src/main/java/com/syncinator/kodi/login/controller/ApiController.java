@@ -3,6 +3,7 @@ package com.syncinator.kodi.login.controller;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.syncinator.kodi.login.model.Pin;
 import com.syncinator.kodi.login.oauth.provider.Provider;
+import com.syncinator.kodi.login.usage.UsageReporter;
 import com.syncinator.kodi.login.util.ClientAddress;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestClientResponseException;
 
 import java.math.BigInteger;
 import java.security.SecureRandom;
@@ -41,6 +43,8 @@ public class ApiController {
 	private Cache<Object, Object> cache;
 	@NonNull
 	private ClientAddress clientAddress;
+	@NonNull
+	private UsageReporter usage;
 
 	@PostMapping("/pin")
 	public Pin generatePin(@RequestParam final String provider, final HttpServletRequest request) {
@@ -56,6 +60,7 @@ public class ApiController {
 				.owner(clientAddress.of(request))
 				.build();
 		cache.put(pin, response);
+		usage.count("pin", provider, "created", "", request.getHeader("addon"));
 		return response;
 	}
 
@@ -77,10 +82,12 @@ public class ApiController {
 						return new ResponseEntity<>(HttpStatus.ACCEPTED);
 					}
 					cache.invalidate(key);
+					usage.count("collect", storedPin.getProvider(), "delivered", "", request.getHeader("addon"));
 					return new ResponseEntity<>(storedPin.getAccessToken(), HttpStatus.OK);
 				}
 			}
 		}
+		usage.count("collect", "", "not_found", "", request.getHeader("addon"));
 		response.sendError(HttpStatus.NOT_FOUND.value());
 		return null;
 	}
@@ -90,13 +97,34 @@ public class ApiController {
 	public Map<String,Object> refresh(
 			@RequestParam(required = false) final String provider,
 			@RequestParam(required = false, name="refresh_token") final String refreshToken,
+			final HttpServletRequest request,
 			final HttpServletResponse response) {
 		if (!StringUtils.hasLength(provider) || !StringUtils.hasLength(refreshToken)) {
 			response.sendError(HttpStatus.BAD_REQUEST.value(), "Provider and refresh token required");
 			return null;
 		}
 		final Provider connector = context.getBean(Provider.NAME_PREFIX + provider, Provider.class);
-		return connector.tokens(Provider.GRANT_TYPE_REFRESH_TOKEN, refreshToken);
+		final String addon = request.getHeader("addon");
+		try {
+			final Map<String,Object> tokens = connector.tokens(Provider.GRANT_TYPE_REFRESH_TOKEN, refreshToken);
+			usage.count("refresh", provider, "ok", "", addon);
+			usage.active(provider, refreshToken, addon);
+			return tokens;
+		} catch (final RestClientResponseException e) {
+			usage.count("refresh", provider, "failed", Provider.errorCode(e), addon);
+			throw e;
+		}
+	}
+
+	/**
+	 * Older add-on versions post error reports here when their optional "Report errors" setting is on. They are not
+	 * accepted (404, as before); only counted, because a looping installation shows up as many of them.
+	 */
+	@SneakyThrows
+	@PostMapping("/report")
+	public void report(final HttpServletRequest request, final HttpServletResponse response) {
+		usage.count("error_report", "", "ignored", "", request.getHeader("addon"));
+		response.sendError(HttpStatus.NOT_FOUND.value());
 	}
 
 	@GetMapping("/ip")

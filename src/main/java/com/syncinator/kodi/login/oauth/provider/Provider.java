@@ -94,6 +94,12 @@ public abstract class Provider {
 		}
 	}
 
+	/** The provider's error code (e.g. invalid_grant), or the HTTP status when the answer has none. */
+	public static String errorCode(final RestClientResponseException e) {
+		final Object error = parseError(e.getResponseBodyAsString()).get("error");
+		return error instanceof String code ? code : String.valueOf(e.getStatusCode().value());
+	}
+
 	private static Map<String,Object> parseError(final String body) {
 		try {
 			return JsonParserFactory.getJsonParser().parseMap(body);

@@ -72,6 +72,7 @@ For **OneDrive**:
 | `RATE_LIMIT_SIGNIN` | `20` | `/authorize` and `/signin/*` requests per minute per IP. |
 | `RATE_LIMIT_REFRESH_IP` | `60` | `POST /refresh` requests per minute per IP. |
 | `RATE_LIMIT_REFRESH_TOKEN` | `10` | `POST /refresh` requests per minute per refresh token (counted by hash). |
+| `USAGE_REPORT_URL`, `USAGE_REPORT_TOKEN` | (none) | Sends anonymous usage counts every hour to a [signin-server](https://github.com/cguZZman/signin-server) instance (`https://<server>/usage/report`, with the same token as its `USAGE_REPORT_TOKEN` secret). Off unless both are set. |
 
 Set a rate limit to `0` to disable it.
 

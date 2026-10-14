@@ -4,7 +4,7 @@
 <body>
 <article id="content" class="prose">
 	<h1>Privacy policy</h1>
-	<p class="meta">Last updated: October 4, 2026</p>
+	<p class="meta">Last updated: October 14, 2026</p>
 
 	<p>
 		This policy covers the <strong>Google Drive</strong> and <strong>OneDrive</strong> add-ons for Kodi and this sign-in service
@@ -77,6 +77,16 @@
 		address and time) to operate the service. Request contents, including tokens, are not part of these logs. Heroku keeps only
 		the most recent 1,500 log lines in a rolling buffer; they are not archived or forwarded anywhere.
 	</p>
+	<h3>Usage statistics</h3>
+	<p>
+		To know how the service is used, the server counts events in memory, for example that a sign-in with Google Drive was
+		completed, or that a token refresh succeeded or failed (with the provider's error code), together with the add-on versions
+		your Kodi device reports. Once an hour it sends these counts to the newer sign-in service at drive.signinserver.com, which
+		keeps them for three months in Cloudflare Workers Analytics Engine. To count how many accounts are active each day, the
+		server remembers in memory, for that day only, a one-way hash of each refresh token it has already seen; only the number of
+		accounts is sent. The counts never contain IP addresses, tokens, account names, file information or anything else that
+		identifies you or your account.
+	</p>
 
 	<h2>What is stored on your Kodi device</h2>
 	<p>
@@ -114,7 +124,8 @@
 	<h2>Error reports</h2>
 	<p>
 		The add-ons do not send error reports. Errors are only written to the Kodi log on your device, with tokens removed.
-		Older add-on versions had an optional <em>Report errors</em> setting; this service does not accept or store those reports.
+		Older add-on versions had an optional <em>Report errors</em> setting; this service does not accept or store those reports,
+		it only counts how many arrive.
 	</p>
 
 	<h2>Google API Services</h2>

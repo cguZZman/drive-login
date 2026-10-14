@@ -4,6 +4,7 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.syncinator.kodi.login.model.Pin;
 import com.syncinator.kodi.login.oauth.Pkce;
 import com.syncinator.kodi.login.oauth.provider.Provider;
+import com.syncinator.kodi.login.usage.UsageReporter;
 import com.syncinator.kodi.login.util.ClientAddress;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.client.RestClientResponseException;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -49,6 +51,8 @@ public class NavigationController {
 	private SecureRandom random;
 	@NonNull
 	private ClientAddress clientAddress;
+	@NonNull
+	private UsageReporter usage;
 
 	@Value("${funding.url}")
 	private String fundingUrl;
@@ -88,8 +92,10 @@ public class NavigationController {
 			storedPin.setBrowserNonce(nonce);
 			storedPin.setCodeVerifier(codeVerifier);
 			response.addHeader(HttpHeaders.SET_COOKIE, signinCookie(nonce, SIGNIN_COOKIE_AGE));
+			usage.count("signin_start", storedPin.getProvider(), "redirected", "", null);
 			return "redirect:" + connector.authorize(unambiguousPin, Pkce.challenge(codeVerifier));
 		}
+		usage.count("signin_start", "", "invalid_code", "", null);
 		request.setAttribute("sourceid", clientAddress.sourceId(request));
 		model.addAttribute("pin", unambiguousPin);
 		model.addAttribute("errorMessage", "error.pin.invalid");
@@ -106,15 +112,19 @@ public class NavigationController {
 			final Model model,
 			final HttpServletResponse response) {
 		if ("access_denied".equals(error)) {
+			usage.count("signin", "", "denied", error, null);
 			model.addAttribute("errorCode", "failure.denied");
 		} else if (error != null) {
+			usage.count("signin", "", "provider_error", error, null);
 			model.addAttribute("errorText", error + ": " + errorDescription);
 		} else if (state == null) {
+			usage.count("signin", "", "missing_code", "", null);
 			model.addAttribute("errorCode", "failure.code.3");
 		} else {
 			final Pin storedPin = (Pin) cache.getIfPresent(state.toLowerCase());
 			if (storedPin != null && !sameBrowser(storedPin, browserNonce)) {
 				log.warn("Sign-in callback rejected: not finished in the browser that started it");
+				usage.count("signin", storedPin.getProvider(), "other_browser", "", null);
 				model.addAttribute("errorCode", "failure.code.4");
 			} else if (storedPin != null) {
 				// Single use: a second callback for this code is rejected.
@@ -122,14 +132,23 @@ public class NavigationController {
 				response.addHeader(HttpHeaders.SET_COOKIE, signinCookie("", Duration.ZERO));
 				final Provider connector = context
 						.getBean(Provider.NAME_PREFIX + storedPin.getProvider(), Provider.class);
-				final Map<String, Object> tokens = connector.exchangeCode(code, storedPin.getCodeVerifier());
+				final Map<String, Object> tokens;
+				try {
+					tokens = connector.exchangeCode(code, storedPin.getCodeVerifier());
+				} catch (final RestClientResponseException e) {
+					usage.count("signin", storedPin.getProvider(), "exchange_failed", Provider.errorCode(e), null);
+					throw e;
+				}
 				if (tokens != null) {
 					storedPin.setAccessToken(tokens);
+					usage.count("signin", storedPin.getProvider(), "completed", "", null);
 					return "redirect:auth-success";
 				} else {
+					usage.count("signin", storedPin.getProvider(), "exchange_failed", "", null);
 					model.addAttribute("errorCode", "failure.code.2");
 				}
 			} else {
+				usage.count("signin", "", "expired", "", null);
 				model.addAttribute("errorCode", "failure.code.1");
 			}
 		}
