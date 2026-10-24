@@ -8,11 +8,17 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClient;
+import tools.jackson.databind.json.JsonMapper;
+
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
@@ -44,6 +50,8 @@ public class UsageReporter {
 	/** One counted combination; empty strings for what doesn't apply. */
 	public record Key(String event, String provider, String outcome, String error, String addon, String addonVersion, String commonVersion) {
 	}
+
+	private static final JsonMapper JSON = JsonMapper.builder().build();
 
 	private final Map<Key, LongAdder> counts = new ConcurrentHashMap<>();
 	private final Set<String> activeToday = new HashSet<>();
@@ -131,11 +139,13 @@ public class UsageReporter {
 		for (int i = 0; i < events.size(); i += MAX_EVENTS_PER_REQUEST) {
 			final List<Map<String, Object>> batch = events.subList(i, Math.min(events.size(), i + MAX_EVENTS_PER_REQUEST));
 			try {
+				// Sent as the exact bytes that are signed.
+				final String body = JSON.writeValueAsString(Map.of("events", batch));
 				restClient.post()
 						.uri(URI.create(url))
-						.header("Authorization", "Bearer " + token)
+						.header("X-Usage-Signature", signature(body, Instant.now().getEpochSecond()))
 						.contentType(MediaType.APPLICATION_JSON)
-						.body(Map.of("events", batch))
+						.body(body.getBytes(StandardCharsets.UTF_8))
 						.retrieve()
 						.toBodilessEntity();
 			} catch (final RuntimeException e) {
@@ -160,6 +170,20 @@ public class UsageReporter {
 		final Map<Key, Long> copy = new LinkedHashMap<>();
 		counts.forEach((k, v) -> copy.put(k, v.sum()));
 		return copy;
+	}
+
+	/**
+	 * "t=<unix seconds>,v1=<hex HMAC-SHA256 of '<t>.<body>'>", keyed with the shared token, which itself is never sent.
+	 * The new sign-in server refuses reports with a wrong signature or more than 5 minutes old (src/usage.ts).
+	 */
+	String signature(final String body, final long seconds) {
+		try {
+			final Mac mac = Mac.getInstance("HmacSHA256");
+			mac.init(new SecretKeySpec(token.getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
+			return "t=" + seconds + ",v1=" + HexFormat.of().formatHex(mac.doFinal((seconds + "." + body).getBytes(StandardCharsets.UTF_8)));
+		} catch (final GeneralSecurityException e) {
+			throw new IllegalStateException(e);
+		}
 	}
 
 	private static String clip(final String value) {

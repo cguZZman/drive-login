@@ -18,6 +18,7 @@ class UsageReporterTest {
 	private HttpServer server;
 	private final List<String> bodies = new CopyOnWriteArrayList<>();
 	private final List<String> authorizations = new CopyOnWriteArrayList<>();
+	private final List<String> signatures = new CopyOnWriteArrayList<>();
 	private volatile int status = 200;
 
 	@BeforeEach
@@ -25,7 +26,8 @@ class UsageReporterTest {
 		server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
 		server.createContext("/ingest/usage", exchange -> {
 			bodies.add(new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8));
-			authorizations.add(exchange.getRequestHeaders().getFirst("Authorization"));
+			authorizations.add(String.valueOf(exchange.getRequestHeaders().getFirst("Authorization")));
+			signatures.add(String.valueOf(exchange.getRequestHeaders().getFirst("X-Usage-Signature")));
 			exchange.sendResponseHeaders(status, -1);
 			exchange.close();
 		});
@@ -52,14 +54,24 @@ class UsageReporterTest {
 				new UsageReporter.Key("refresh", "googledrive", "failed", "invalid_grant", "", "", ""), 1L));
 
 		usage.report();
-		assertThat(authorizations).containsExactly("Bearer report-token");
+		assertThat(authorizations).as("the token is never sent").containsExactly("null");
 		assertThat(bodies).hasSize(1);
+		final String[] parts = signatures.getFirst().split("[=,]");
+		assertThat(parts[0]).isEqualTo("t");
+		assertThat(Long.parseLong(parts[1])).isCloseTo(java.time.Instant.now().getEpochSecond(), org.assertj.core.data.Offset.offset(5L));
+		assertThat(signatures.getFirst()).as("HMAC of the exact body").isEqualTo(usage.signature(bodies.getFirst(), Long.parseLong(parts[1])));
 		assertThat(bodies.getFirst())
 				.contains("\"event\":\"refresh\"", "\"addon\":\"plugin.googledrive\"", "\"addon_version\":\"1.5.6\"", "\"common_version\":\"1.4.0\"", "\"count\":2")
 				.contains("\"error\":\"invalid_grant\"", "\"count\":1");
 		assertThat(usage.pending()).isEmpty();
 		usage.report();
 		assertThat(bodies).as("nothing to send").hasSize(1);
+	}
+
+	@Test
+	void signsWithTheSharedTokenAsTheKey() {
+		// HMAC-SHA256(key "report-token", "1700000000.{}"), computed independently; signin-server checks the same vector.
+		assertThat(reporter().signature("{}", 1_700_000_000L)).isEqualTo("t=1700000000,v1=dd048e5b96b9ea5a246af6fae0229cdb7fd89d8bc24def0b197dbb146c393906");
 	}
 
 	@Test
